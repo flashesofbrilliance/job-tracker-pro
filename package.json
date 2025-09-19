@@ -1,0 +1,18 @@
+{
+  "name": "job-tracker-pro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Clean, minimal job tracking web app",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=3000 --open=/index.html",
+    "serve": "http-server . -p 8080 -o",
+    "bootstrap:ci": "bash scripts/bootstrap-ci.sh",
+    "setup:pipeline": "bash scripts/setup-pipeline.sh"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  }
+}
+

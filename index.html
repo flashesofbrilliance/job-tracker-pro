@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Job Tracker Pro</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <h1 class="app-title">Job Tracker Pro</h1>
+      <div class="actions">
+        <input id="search" class="search" placeholder="Search company, role, tags">
+        <button id="add" class="btn">Add</button>
+      </div>
+    </header>
+
+    <main>
+      <table id="jobs" class="jobs">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Tags</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </main>
+
+    <footer class="app-footer">
+      <small>Client-side app • No backend required</small>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
