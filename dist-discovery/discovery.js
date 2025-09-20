@@ -1904,20 +1904,27 @@
   function render() {
     const jobs = getJobs();
     const insights = window.DiscoveryCore.analyzeLearningSignals(jobs);
+    
+    // Update learning signals
     const signals = $('#signals');
-    signals.innerHTML = `
-      <div class="segment-stats">
-        ${insights.topSegments.map(s => `
-          <div class="segment-stat"><span class="segment-name">${s.name} (${s.count})</span><span class="segment-score">${s.score.toFixed(2)}</span></div>
-        `).join('') || '<div class="empty">No signals yet. Add activities in the main app.</div>'}
-      </div>
-      <div style="margin-top:12px;">
-        <h4 style="margin:0 0 8px 0;">Sushi Belt Analytics</h4>
+    if (signals) {
+      signals.innerHTML = `
+        <div class="segment-stats">
+          ${insights.topSegments.map(s => `
+            <div class="segment-stat"><span class="segment-name">${s.name} (${s.count})</span><span class="segment-score">${s.score.toFixed(2)}</span></div>
+          `).join('') || '<div class="empty">No signals yet. Add activities in the main app.</div>'}
+        </div>`;
+    }
+    
+    // Update belt analytics
+    const beltAnalytics = $('#belt-analytics');
+    if (beltAnalytics) {
+      beltAnalytics.innerHTML = `
         <div class="segment-stats">
           <div class="segment-stat"><span class="segment-name">Accepted (→)</span><span class="segment-score">${swipeAnalytics.accepted.length}</span></div>
           <div class="segment-stat"><span class="segment-name">Rejected (←)</span><span class="segment-score">${swipeAnalytics.rejected.length}</span></div>
-        </div>
-      </div>`;
+        </div>`;
+    }
 
     const recos = window.DiscoveryCore.generateRecommendations(jobs, insights, Date.now() % 97);
     
