@@ -45,7 +45,7 @@ jobs:
           else
             git checkout --orphan gh-pages
             rm -rf ./* .[^.]* || true
-            echo '<!doctype html><title>Build Catalog</title><p>Initialized gh-pages' > index.html
+            printf '%s\n' '<!DOCTYPE html><title>Build Catalog</title><p>Initialized gh-pages' > index.html
             git add index.html
             git commit -m "chore: init gh-pages"
           fi
