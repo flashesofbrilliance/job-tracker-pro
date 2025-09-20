@@ -33,6 +33,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
+          set +H  # Disable history expansion
           mkdir -p repo
           cd repo
           git init
@@ -45,7 +46,9 @@ jobs:
           else
             git checkout --orphan gh-pages
             rm -rf ./* .[^.]* || true
-            printf '%s\n' '<!DOCTYPE html><title>Build Catalog</title><p>Initialized gh-pages' > index.html
+            cat > index.html << 'EOF'
+<!DOCTYPE html><title>Build Catalog</title><p>Initialized gh-pages
+EOF
             git add index.html
             git commit -m "chore: init gh-pages"
           fi
@@ -70,7 +73,8 @@ jobs:
             data.envs[env]=data.envs[env].slice(0,100);
             data.updated_at=new Date().toISOString();
             fs.writeFileSync(mf, JSON.stringify(data,null,2));
-            const html=['<!DOCTYPE html>','<meta charset="utf-8">','<title>Build Catalog</title>','<h1>Build Catalog</h1>',...Object.entries(data.envs).map(([k,arr])=>`<h2>${k}</h2><ul>`+arr.map(i=>`<li><a href="/${i.path}/">${i.name}</a> <small>${i.created_at} (${i.commit?.slice(0,7)||''})</small></li>`).join('')+"</ul>")].join('\n');
+            const doctype = '<' + '!DOCTYPE html>';
+            const html=[doctype,'<meta charset="utf-8">','<title>Build Catalog</title>','<h1>Build Catalog</h1>',...Object.entries(data.envs).map(([k,arr])=>`<h2>${k}</h2><ul>`+arr.map(i=>`<li><a href="/${i.path}/">${i.name}</a> <small>${i.created_at} (${i.commit?.slice(0,7)||''})</small></li>`).join('')+"</ul>")].join('\n');
             fs.writeFileSync(path.join('.', 'index.html'), html);
           '
           git add "$DEST" env/manifest.json index.html
