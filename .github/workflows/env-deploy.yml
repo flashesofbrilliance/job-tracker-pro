@@ -67,15 +67,29 @@ jobs:
             for(const f of files){ const b=fs.readFileSync(f); const h=crypto.createHash("sha256").update(b).digest("hex"); hashes[f.replace(/^dist\//,"")]=h; }
             const out={ commit: process.env.GITHUB_SHA, generated_at: new Date().toISOString(), files: hashes };
             fs.writeFileSync("dist/_provenance.json", JSON.stringify(out,null,2));'
-      - name: Deploy to gh-pages env path
+      - name: Deploy to gh-pages env path (git push)
         if: steps.env.outputs.skip != 'true'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist
-          publish_branch: gh-pages
-          destination_dir: ${{ steps.env.outputs.path }}
-          enable_jekyll: false
+        run: |
+          set -euo pipefail
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git fetch origin gh-pages:gh-pages || true
+          if ! git rev-parse --verify gh-pages >/dev/null 2>&1; then
+            git checkout --orphan gh-pages
+            rm -rf ./* .[^.]* || true
+            echo '<!doctype html><title>Build Catalog</title><p>gh-pages initialized' > index.html
+            git add index.html
+            git commit -m "chore: init gh-pages"
+          else
+            git checkout gh-pages
+          fi
+          DEST="${{ steps.env.outputs.path }}"
+          mkdir -p "$DEST"
+          rm -rf "$DEST"/* || true
+          cp -R dist/* "$DEST"/
+          git add "$DEST"
+          git commit -m "deploy: $DEST from $GITHUB_REF@${GITHUB_SHA::7}" || true
+          git push origin gh-pages
       - name: Update env latest pointer
         if: steps.env.outputs.skip != 'true'
         run: |
