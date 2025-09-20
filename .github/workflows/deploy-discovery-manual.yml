@@ -1,0 +1,93 @@
+name: Deploy Discovery PWA (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+        - preview
+        - main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages-discovery-${{ github.event.inputs.environment }}"
+  cancel-in-progress: true
+
+jobs:
+  deploy-discovery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm install --production
+          
+      - name: Build Discovery PWA
+        run: npm run build:discovery
+        
+      - name: Deploy to GitHub Pages
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          
+          # Configure git
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          
+          # Create or switch to gh-pages branch
+          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages || git checkout --orphan gh-pages
+          
+          # Clear existing files but keep git
+          find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} \;
+          
+          # Copy built files
+          cp -R ./dist-discovery/* .
+          
+          # Create index file if it doesn't exist
+          if [ ! -f index.html ]; then
+            cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sushi Discovery PWA</title>
+  <meta http-equiv="refresh" content="0; url=./discovery.html">
+</head>
+<body>
+  <p><a href="./discovery.html">Launch Sushi Discovery PWA</a></p>
+</body>
+</html>
+EOF
+          fi
+          
+          # Add all files
+          git add .
+          
+          # Commit changes
+          git commit -m "Deploy Discovery PWA ($ENVIRONMENT) - $(date)"
+          
+          # Push to gh-pages
+          git push origin gh-pages --force
+          
+      - name: Output deployment URL
+        run: |
+          echo "🍣 Sushi Discovery PWA deployed to:"
+          echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
