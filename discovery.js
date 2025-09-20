@@ -17,9 +17,22 @@
     setTimeout(() => toast.remove(), 4000);
   }
 
+  const DISCO_KEY = 'disco:jobSearchData';
+
   function getJobs() {
     try {
-      const raw = localStorage.getItem('jobSearchData');
+      let raw = localStorage.getItem(DISCO_KEY);
+      if (!raw) {
+        // Offer import from main app on first load
+        const mainRaw = localStorage.getItem('jobSearchData');
+        if (mainRaw) {
+          const doImport = window.confirm('Import existing data from main app into Discovery?');
+          if (doImport) {
+            localStorage.setItem(DISCO_KEY, mainRaw);
+            raw = mainRaw;
+          }
+        }
+      }
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       return Array.isArray(parsed) ? parsed : [];
@@ -27,7 +40,7 @@
   }
 
   function saveJobs(jobs) {
-    try { localStorage.setItem('jobSearchData', JSON.stringify(jobs)); } catch (e) {}
+    try { localStorage.setItem(DISCO_KEY, JSON.stringify(jobs)); } catch (e) {}
   }
 
   function fitClass(score) {
@@ -109,4 +122,3 @@
     render();
   });
 })();
-
