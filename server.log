@@ -9,3 +9,21 @@
 ::1 - - [19/Sep/2025 23:48:13] "GET /manifest.json HTTP/1.1" 200 -
 ::1 - - [19/Sep/2025 23:48:13] code 404, message File not found
 ::1 - - [19/Sep/2025 23:48:13] "GET /icons/icon-144x144.png HTTP/1.1" 404 -
+::1 - - [19/Sep/2025 23:54:14] "GET /discovery.html HTTP/1.1" 200 -
+::1 - - [19/Sep/2025 23:54:14] "GET /style.css HTTP/1.1" 304 -
+::1 - - [19/Sep/2025 23:54:14] "GET /performance-manager.js HTTP/1.1" 304 -
+::1 - - [19/Sep/2025 23:54:14] "GET /metrics-framework.js HTTP/1.1" 304 -
+::1 - - [19/Sep/2025 23:54:14] "GET /discovery-core.js HTTP/1.1" 304 -
+::1 - - [19/Sep/2025 23:54:14] "GET /discovery.js HTTP/1.1" 200 -
+::1 - - [19/Sep/2025 23:54:15] code 404, message File not found
+::1 - - [19/Sep/2025 23:54:15] "GET /icons/icon-144x144.png HTTP/1.1" 404 -
+::1 - - [19/Sep/2025 23:54:17] "GET /sw.js HTTP/1.1" 304 -
+::1 - - [19/Sep/2025 23:57:08] code 404, message File not found
+::1 - - [19/Sep/2025 23:57:08] "GET /icons/icon-144x144.png HTTP/1.1" 404 -
+::1 - - [19/Sep/2025 23:57:10] "GET /sw.js HTTP/1.1" 304 -
+::1 - - [20/Sep/2025 00:00:29] code 404, message File not found
+::1 - - [20/Sep/2025 00:00:29] "GET /icons/icon-144x144.png HTTP/1.1" 404 -
+::1 - - [20/Sep/2025 00:00:30] "GET /sw.js HTTP/1.1" 304 -
+::1 - - [20/Sep/2025 00:00:45] "GET /index.html HTTP/1.1" 200 -
+::1 - - [20/Sep/2025 00:00:45] "GET /app.js HTTP/1.1" 200 -
+::1 - - [20/Sep/2025 00:00:47] "GET /sw.js HTTP/1.1" 304 -

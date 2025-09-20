@@ -785,7 +785,290 @@
     
     .no-pile {
       top: 10px;
-      left: 10px;
+      right: 10px;
+    }
+  }
+  
+  /* Japanese Woodblock Sushi Styles */
+  .sushi-plate {
+    position: relative;
+    width: 120px;
+    height: 80px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #f8f8f8, #e8e8e8);
+    box-shadow: 
+      inset 2px 2px 4px rgba(255, 255, 255, 0.8),
+      inset -2px -2px 4px rgba(0, 0, 0, 0.1),
+      0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .sushi-piece {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Salmon sushi with fish scale pattern */
+  .sushi-piece.salmon {
+    background: 
+      radial-gradient(ellipse at 30% 20%, rgba(255, 180, 180, 0.8) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(255, 160, 160, 0.6) 0%, transparent 50%),
+      linear-gradient(135deg, #ff9999 0%, #ff7777 50%, #ff5555 100%);
+    position: relative;
+  }
+  
+  .sushi-piece.salmon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.05) 2px,
+        rgba(0, 0, 0, 0.05) 3px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 3px,
+        rgba(255, 255, 255, 0.1) 3px,
+        rgba(255, 255, 255, 0.1) 4px
+      );
+    mix-blend-mode: multiply;
+  }
+  
+  /* Tuna sushi with denser pattern for premium quality */
+  .sushi-piece.tuna {
+    background: 
+      radial-gradient(ellipse at 25% 25%, rgba(200, 80, 80, 0.9) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 75%, rgba(180, 60, 60, 0.7) 0%, transparent 60%),
+      linear-gradient(135deg, #cc4444 0%, #aa3333 50%, #882222 100%);
+    position: relative;
+  }
+  
+  .sushi-piece.tuna::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(
+        30deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.08) 1px,
+        rgba(0, 0, 0, 0.08) 2px
+      ),
+      repeating-linear-gradient(
+        -30deg,
+        transparent,
+        transparent 1px,
+        rgba(255, 255, 255, 0.08) 1px,
+        rgba(255, 255, 255, 0.08) 2px
+      );
+    mix-blend-mode: multiply;
+  }
+  
+  /* Rice base with granular texture */
+  .sushi-piece::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 2px;
+    right: 2px;
+    height: 20px;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.8) 1px, transparent 2px),
+      radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.6) 1px, transparent 2px),
+      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.7) 1px, transparent 2px),
+      linear-gradient(180deg, #fff8f0 0%, #f5f0e8 100%);
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Roll varieties with nori wrap */
+  .sushi-piece.roll {
+    background: 
+      linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+    border: 2px solid #2a3828;
+    position: relative;
+  }
+  
+  .sushi-piece.roll::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        rgba(42, 56, 40, 0.1),
+        rgba(42, 56, 40, 0.1) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(42, 56, 40, 0.05),
+        rgba(42, 56, 40, 0.05) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+  }
+  
+  /* Depth indicators using traditional Japanese line work */
+  .sushi-plate.depth-close::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 1px,
+      rgba(0, 0, 0, 0.2) 1px,
+      rgba(0, 0, 0, 0.2) 2px
+    );
+  }
+  
+  .sushi-plate.depth-medium::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 3px
+    );
+  }
+  
+  .sushi-plate.depth-far::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 4px,
+      rgba(0, 0, 0, 0.1) 4px,
+      rgba(0, 0, 0, 0.1) 5px
+    );
+  }
+  
+  /* Job info labels on plates */
+  .sushi-label {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+    line-height: 1.2;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+  }
+  
+  .sushi-label-company {
+    font-weight: 700;
+    font-size: 9px;
+  }
+  
+  .sushi-label-role {
+    font-weight: 500;
+    font-size: 8px;
+    opacity: 0.8;
+  }
+  
+  /* Hover effects with traditional depth */
+  .sushi-plate:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      inset 2px 2px 4px rgba(255, 255, 255, 0.9),
+      inset -2px -2px 4px rgba(0, 0, 0, 0.15),
+      0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+  
+  .sushi-plate:hover .sushi-piece {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Animation states */
+  .sushi-plate.entering {
+    animation: sushiEnter 0.6s ease-out;
+  }
+  
+  .sushi-plate.accepted {
+    animation: sushiAccept 0.8s ease-out;
+  }
+  
+  .sushi-plate.rejected {
+    animation: sushiReject 0.8s ease-out;
+  }
+  
+  @keyframes sushiEnter {
+    0% {
+      transform: translateX(-200px) scale(0.8);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes sushiAccept {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(50px) scale(1.1); }
+    100% { transform: translateX(200px) scale(0.8); opacity: 0; }
+  }
+  
+  @keyframes sushiReject {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(-50px) scale(0.9); }
+    100% { transform: translateX(-200px) scale(0.8); opacity: 0; }
+  }
+  
+  @media (max-width: 768px) {
+    .sushi-plate {
+      width: 100px;
+      height: 68px;
+    }
+    
+    .sushi-piece {
+      width: 85px;
+      height: 50px;
     }
   }
   </style>
@@ -994,6 +1277,7 @@
   <script src="performance-manager.js"></script>
   <script src="metrics-framework.js"></script>
   <script src="discovery-core.js"></script>
+  <script src="woodblock-patterns.js"></script>
   <script src="discovery.js"></script>
   
   <script>
