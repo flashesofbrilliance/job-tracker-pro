@@ -2802,9 +2802,79 @@
   }
 
 
+  // Generate fallback recommendations when no data exists
+  function generateFallbackRecommendations() {
+    console.log('🌾 Creating demo recommendations for first-time users');
+    const fallbackJobs = [
+      {
+        id: 'demo-1',
+        company: 'TechCorp',
+        roleTitle: 'Senior Software Engineer',
+        location: 'San Francisco',
+        sector: 'Technology',
+        salary: '$120k - $160k',
+        expectedFit: 8.5,
+        tags: ['Remote', 'React', 'Node.js', 'Startup']
+      },
+      {
+        id: 'demo-2', 
+        company: 'DataFlow Inc',
+        roleTitle: 'Product Manager',
+        location: 'New York',
+        sector: 'Data Analytics',
+        salary: '$110k - $140k',
+        expectedFit: 7.8,
+        tags: ['Hybrid', 'B2B', 'SaaS', 'Growth Stage']
+      },
+      {
+        id: 'demo-3',
+        company: 'CloudNative',
+        roleTitle: 'DevOps Engineer', 
+        location: 'Seattle',
+        sector: 'Cloud Services',
+        salary: '$130k - $170k',
+        expectedFit: 9.1,
+        tags: ['Remote', 'AWS', 'Kubernetes', 'Series B']
+      },
+      {
+        id: 'demo-4',
+        company: 'GreenTech Solutions',
+        roleTitle: 'Frontend Developer',
+        location: 'Austin',
+        sector: 'CleanTech',
+        salary: '$95k - $125k',
+        expectedFit: 7.2,
+        tags: ['Hybrid', 'Vue.js', 'TypeScript', 'Mission-Driven']
+      },
+      {
+        id: 'demo-5',
+        company: 'FinanceBot',
+        roleTitle: 'Full Stack Engineer',
+        location: 'Remote',
+        sector: 'FinTech',
+        salary: '$140k - $180k',
+        expectedFit: 8.9,
+        tags: ['Remote', 'Python', 'React', 'Series A']
+      }
+    ];
+    
+    return fallbackJobs;
+  }
+  
   function render() {
+    console.log('🍣 Discovery render() called');
+    
+    // Check if DiscoveryCore is loaded
+    if (!window.DiscoveryCore) {
+      console.error('❌ DiscoveryCore not loaded!');
+      return;
+    }
+    
     const jobs = getJobs();
+    console.log('📊 Jobs loaded:', jobs.length);
+    
     const insights = window.DiscoveryCore.analyzeLearningSignals(jobs);
+    console.log('💡 Insights generated:', insights);
     
     // Update learning signals
     const signals = $('#signals');
@@ -2828,13 +2898,26 @@
     }
 
     const recos = window.DiscoveryCore.generateRecommendations(jobs, insights, Date.now() % 97);
+    console.log('🍣 Recommendations generated:', recos.length, recos);
     
     // Set up recommendations for conveyor belt
     currentRecos = recos;
     currentIndex = 0;
     
     if (recos.length > 0 && !conveyorBelt.isProcessing) {
+      console.log('🌾 Starting conveyor belt with first recommendation:', recos[0]);
       addSushiToBelt(recos[0]);
+    } else {
+      console.warn('⚠️ No recommendations to start belt with. Recos length:', recos.length, 'Belt processing:', conveyorBelt.isProcessing);
+      // Try to generate some fallback recommendations
+      if (recos.length === 0) {
+        console.log('🌾 Generating fallback recommendations...');
+        const fallbackRecos = generateFallbackRecommendations();
+        currentRecos = fallbackRecos;
+        if (fallbackRecos.length > 0) {
+          addSushiToBelt(fallbackRecos[0]);
+        }
+      }
     }
     
     // Hidden legacy table for compatibility
