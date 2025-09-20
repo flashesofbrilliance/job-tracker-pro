@@ -3,6 +3,12 @@ name: Discovery Preview Deploy (PR)
 on:
   pull_request:
     branches:
+      - main
+    paths:
+      - 'discovery*'
+      - '.github/workflows/discovery-preview.yml'
+  push:
+    branches:
       - discovery/**
   workflow_dispatch:
     inputs:
