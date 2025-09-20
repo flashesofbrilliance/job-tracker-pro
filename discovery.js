@@ -1677,6 +1677,8 @@
   let currentRecos = [];
   let currentIndex = 0;
   let swipeAnalytics = { accepted: [], rejected: [] };
+  let yesPile = [];
+  let noPile = [];
   
   // Role-to-Sushi Mapping
   const roleToSushi = {
@@ -1714,6 +1716,47 @@
     return roleToSushi.default;
   }
 
+  // Pile management functions
+  function addToYesPile(reco) {
+    yesPile.unshift(reco); // Add to beginning for most recent on top
+    updatePileDisplay('yes');
+    animatePileUpdate('yes');
+  }
+  
+  function addToNoPile(reco) {
+    noPile.unshift(reco); // Add to beginning for most recent on top
+    updatePileDisplay('no');
+    animatePileUpdate('no');
+  }
+  
+  function updatePileDisplay(pileType) {
+    const pile = pileType === 'yes' ? yesPile : noPile;
+    const countEl = $(`#${pileType}-count`);
+    const itemsEl = $(`#${pileType}-items`);
+    
+    // Update count
+    countEl.textContent = pile.length;
+    
+    // Update items (show last 10 for performance)
+    const recentItems = pile.slice(0, 10);
+    itemsEl.innerHTML = recentItems.map(reco => `
+      <div class="pile-item">
+        <div class="pile-item-company">${reco.company}</div>
+        <div class="pile-item-role">${reco.roleTitle}</div>
+      </div>
+    `).join('');
+  }
+  
+  function animatePileUpdate(pileType) {
+    const pileEl = $(`#${pileType}-pile`);
+    if (pileEl) {
+      pileEl.classList.add('updated');
+      setTimeout(() => {
+        pileEl.classList.remove('updated');
+      }, 500);
+    }
+  }
+  
   function generateWhyInsights(reco, isAccepted) {
     const jobs = getJobs();
     const insights = window.DiscoveryCore.analyzeLearningSignals(jobs);
@@ -2561,6 +2604,9 @@
     // Add to job list
     addRecoToJobs(reco);
     
+    // Add to Yes pile
+    addToYesPile(reco);
+    
     // Strategic feedback based on decision quality
     const analysis = plate._analysis;
     let feedbackMessage = '';
@@ -2610,6 +2656,9 @@
     endDecisionPhase();
     
     plate.classList.add('rejected');
+    
+    // Add to No pile
+    addToNoPile(reco);
     
     // Record knife skills for decision speed
     const timeSpent = conveyorBelt.decisionWindow - (conveyorBelt.decisionTimer ? 
@@ -2685,28 +2734,44 @@
   }
   
   function updateJobInfoPanel(reco) {
-    // Update Atari-style job info panel
-    $('#card-company').textContent = reco.company.toUpperCase();
-    $('#card-role').textContent = reco.roleTitle.toUpperCase();
-    $('#salary-value').textContent = reco.salary || '$--';
-    $('#fit-score-value').textContent = reco.expectedFit.toFixed(1);
-    $('#sector-value').textContent = reco.sector.toUpperCase();
-    $('#location-value').textContent = (reco.location || 'REMOTE').toUpperCase();
+    // Update professional job card
+    $('#card-company').textContent = reco.company;
+    $('#card-role').textContent = reco.roleTitle;
+    $('#salary-value').textContent = reco.salary || 'Not disclosed';
     
-    // Update fit score styling
+    // Update fit score with proper formatting
+    const fitScore = reco.expectedFit.toFixed(1);
     const fitScoreEl = $('#fit-score-value');
-    fitScoreEl.className = `stat-value fit-score ${fitClass(reco.expectedFit)}`;
+    fitScoreEl.textContent = fitScore;
+    fitScoreEl.className = `fit-score ${fitClass(reco.expectedFit)}`;
     
-    // Generate a random vibe
-    const vibes = ['😍', '🤩', '😎', '😄', '😊', '🥳', '🥰', '😉'];
-    const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
-    $('#vibe-value').textContent = randomVibe;
+    // Update fit bar width
+    const fitBarFill = $('#fit-bar-fill');
+    if (fitBarFill) {
+      fitBarFill.style.width = `${(reco.expectedFit / 10) * 100}%`;
+    }
     
-    // Update tags
+    // Update context info
+    $('#sector-value').textContent = reco.sector || 'Technology';
+    $('#location-value').textContent = reco.location || 'Remote';
+    
+    // Update skills tags with proper styling
     const tagsContainer = $('#card-tags');
-    tagsContainer.innerHTML = reco.tags.slice(0, 4).map(tag => 
-      `<div class="retro-tag">${tag.toUpperCase()}</div>`
+    tagsContainer.innerHTML = reco.tags.slice(0, 6).map(tag => 
+      `<div class="skill-tag">${tag}</div>`
     ).join('');
+    
+    // Update decision helpers
+    const competitionLevel = calculateCompetitionLevel(reco);
+    let competitionText = 'Low Competition';
+    if (competitionLevel > 0.7) competitionText = 'High Competition';
+    else if (competitionLevel > 0.4) competitionText = 'Medium Competition';
+    
+    $('#competition-level').textContent = competitionText;
+    
+    // Quick apply status (could be enhanced with real data)
+    const quickApply = reco.tags.includes('Quick Apply') || Math.random() > 0.7;
+    $('#quick-apply').textContent = quickApply ? 'Quick Apply Available' : 'Standard Application';
   }
   
   function updateGameStats(isAccept, fitScore) {
@@ -2965,9 +3030,10 @@
           focusedPlate = Math.min(currentRecos.length - 1, focusedPlate + 1);
           updateFocusedPlate();
           break;
-        case ' ': // Spacebar to pause/resume
+        case ' ': // Spacebar to go to next job
           e.preventDefault();
-          toggleBeltPause();
+          nextSushi();
+          showToast('⏭️ Next job loaded', 'info');
           break;
       }
     });
@@ -2990,6 +3056,7 @@
     // Action button handlers
     const acceptBtn = document.getElementById('accept-btn');
     const rejectBtn = document.getElementById('reject-btn');
+    const nextBtn = document.getElementById('next-btn');
     
     if (acceptBtn) {
       acceptBtn.addEventListener('click', swipeRight);
@@ -2997,6 +3064,13 @@
     
     if (rejectBtn) {
       rejectBtn.addEventListener('click', swipeLeft);
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        nextSushi();
+        showToast('⏭️ Next job loaded', 'info');
+      });
     }
     
     // Make Mise en Place functions globally available
