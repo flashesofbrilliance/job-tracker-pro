@@ -107,6 +107,9 @@
                         <button class="view-btn" data-view="analytics">
                             <i class="fas fa-chart-bar"></i> Analytics
                         </button>
+                        <button class="view-btn" data-view="discover">
+                            <i class="fas fa-compass"></i> Discover
+                        </button>
                     </div>
                     <div class="bulk-actions hidden" id="bulk-actions">
                         <span class="bulk-counter" id="bulk-counter">0 selected</span>
@@ -304,6 +307,25 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Discover View -->
+                <div class="view-content" id="discover-view">
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Learning Signals</h3>
+                            <div id="discover-insights"></div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                                <h3 style="margin:0;">Recommended Roles</h3>
+                                <div style="display:flex;gap:8px;">
+                                  <button class="btn btn--outline btn--sm" id="refresh-recos-btn"><i class="fas fa-sync"></i> Refresh</button>
+                                </div>
+                            </div>
+                            <div id="discover-list" class="table-container"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -349,6 +371,19 @@
                                 <option value="Follow-up">Follow-up</option>
                                 <option value="Offer">Offer</option>
                                 <option value="Rejection">Rejection</option>
+                            </select>
+                        </div>
+                        <div class="form-group hidden" id="activity-reason-group">
+                            <label class="form-label">Reason (if rejection)</label>
+                            <select class="form-control" id="activity-reason">
+                                <option value="">Select a reason…</option>
+                                <option value="Compensation">Compensation</option>
+                                <option value="Seniority/Level">Seniority/Level</option>
+                                <option value="Location/Visa">Location/Visa</option>
+                                <option value="Timing/Headcount">Timing/Headcount</option>
+                                <option value="Domain Fit">Domain Fit</option>
+                                <option value="Skills/Experience">Skills/Experience</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
                         <div class="form-group">
