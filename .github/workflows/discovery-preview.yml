@@ -10,6 +10,7 @@ on:
         description: 'PR number to simulate'
         required: true
         default: '1'
+        type: string
 
 permissions:
   contents: write
