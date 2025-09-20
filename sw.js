@@ -1,16 +1,13 @@
 // Service Worker for Sushi Discovery PWA
-// Provides offline functionality and caching
+// Provides offline functionality with smart caching strategy
 
-const CACHE_NAME = 'sushi-discovery-v1.4.0';
-const urlsToCache = [
-  './',
-  './discovery.html',
-  './index.html',
-  './style.css',
-  './discovery.js',
-  './discovery-core.js', 
-  './app.js',
+const CACHE_NAME = 'sushi-discovery-v1.5.0';
+const DATA_CACHE_NAME = 'sushi-data-v1.5.0';
+
+// Static assets that can be cached aggressively
+const STATIC_ASSETS = [
   './manifest.json',
+  './style.css',
   // External CDN resources (cached for offline)
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.20.0/cannon.min.js',
@@ -19,15 +16,24 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Install event - cache resources
+// Dynamic assets that need fresh content (network-first)
+const DYNAMIC_ASSETS = [
+  './discovery.html',
+  './discovery.js',
+  './discovery-core.js',
+  './index.html',
+  './app.js'
+];
+
+// Install event - cache static resources only
 self.addEventListener('install', (event) => {
-  console.log('🍣 Sushi Discovery Service Worker: Installing...');
+  console.log('🍣 Sushi Discovery Service Worker: Installing with smart caching...');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('🍣 Sushi Discovery Service Worker: Caching resources...');
-        return cache.addAll(urlsToCache);
+        console.log('🍣 Sushi Discovery Service Worker: Caching static assets...');
+        return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
         console.log('🍣 Sushi Discovery Service Worker: Installation complete!');

@@ -116,8 +116,23 @@
     <div class="toast-container" id="toast-container"></div>
   </div>
 
+  <script src="performance-manager.js"></script>
+  <script src="metrics-framework.js"></script>
   <script src="discovery-core.js"></script>
   <script src="discovery.js"></script>
+  
+  <script>
+    // Initialize performance and metrics frameworks
+    const performanceManager = new MobilePerformanceManager();
+    const uxMetrics = new UXMetricsFramework();
+    
+    // Enable metrics dashboard in development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      document.getElementById('ux-metrics-dashboard').style.display = 'block';
+    }
+    
+    console.log('🚀 Sushi Discovery PWA loaded with performance optimization and UX metrics');
+  </script>
 </body>
 </html>
 
