@@ -6,6 +6,25 @@
   <title>Discovery Engine</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sushi Discovery">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  
+  <!-- Mobile Optimizations -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- WebGL & Animation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.20.0/cannon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -28,8 +47,68 @@
           <div id="signals"></div>
         </div>
         <div class="analytics-card">
-          <h3>Recommended Roles</h3>
-          <div id="recos" class="table-container"></div>
+          <h3>🍣 Retro Sushi Discovery</h3>
+          <div style="text-align:center;margin:12px 0;font-size:12px;color:#7f8c8d;">
+            <strong>Controls:</strong> → Accept & Add to List | ← Reject & Learn Why | Space Next
+          </div>
+          <div class="sushi-conveyor" id="sushi-conveyor">
+            <canvas id="sushi-canvas" width="800" height="400"></canvas>
+            <div class="sushi-overlay">
+              <div class="sushi-info" id="sushi-info">
+                <div class="role-name" id="current-role">Loading...</div>
+                <div class="company-name" id="current-company">Preparing sushi...</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 80s Baseball Card -->
+          <div class="job-card" id="job-card">
+            <div class="card-header">
+              <h1 class="company-name" id="card-company">Loading...</h1>
+              <p class="role-title" id="card-role">Preparing recommendations...</p>
+            </div>
+            
+            <!-- Sushi Price -->
+            <div class="sushi-price">
+              <div class="price-label">Sushi Price</div>
+              <div class="price-value" id="salary-value">$--</div>
+            </div>
+            
+            <!-- Main Stats: Fit Score & Vibes -->
+            <div class="card-main-stats">
+              <div class="main-stat fit-stat" id="fit-score-box">
+                <div class="main-stat-label">Fit Score</div>
+                <div class="main-stat-value" id="fit-score-value">--</div>
+              </div>
+              <div class="main-stat vibe-stat">
+                <div class="main-stat-label">Vibes</div>
+                <div class="main-stat-value" id="vibe-value">😐</div>
+              </div>
+            </div>
+            
+            <!-- Secondary Stats -->
+            <div class="card-secondary-stats">
+              <div class="stat-box">
+                <div class="stat-label">Sector</div>
+                <div class="stat-value" id="sector-value">--</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Location</div>
+                <div class="stat-value" id="location-value">--</div>
+              </div>
+            </div>
+            
+            <div class="card-tags" id="card-tags">
+              <!-- Tags will be populated here -->
+            </div>
+            
+            <div class="card-actions">
+              <button class="retro-btn btn-reject" id="reject-btn">← PASS</button>
+              <button class="retro-btn btn-accept" id="accept-btn">→ GRAB</button>
+            </div>
+          </div>
+          
+          <div id="recos" style="display: none;"></div>
         </div>
       </div>
     </main>
