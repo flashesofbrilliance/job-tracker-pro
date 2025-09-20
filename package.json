@@ -16,6 +16,11 @@
     "health:check": "node scripts/health-check.js",
     "test:rollback": "bash scripts/test-rollback.sh",
     "test:simulation": "bash scripts/deployment-simulation.sh",
+    "validate:dev": "node scripts/validate-environment.js dev",
+    "validate:qa": "node scripts/validate-environment.js qa",
+    "validate:stage": "node scripts/validate-environment.js stage",
+    "validate:prod": "node scripts/validate-environment.js prod",
+    "track:changes": "node scripts/track-changes.js",
     "bootstrap:ci": "bash scripts/bootstrap-ci.sh",
     "setup:pipeline": "bash scripts/setup-pipeline.sh"
   },
