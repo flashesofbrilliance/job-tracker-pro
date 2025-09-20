@@ -3,6 +3,12 @@ name: Preview Deploy (PR)
 on:
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to simulate'
+        required: true
+        default: '1'
 
 permissions:
   contents: write
@@ -30,7 +36,7 @@ jobs:
         run: npm run build
       - name: Publish PR preview and update manifest (gh-pages)
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
         run: |
           set -euo pipefail
           set +H  # Disable history expansion
