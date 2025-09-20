@@ -1916,118 +1916,172 @@ select.form-control {
   perspective: 1000px;
 }
 
+/* Sushi plate container */
+.sushi-plate {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  width: auto;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.sushi-plate.entering {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sushi-plate.exiting {
+  opacity: 0;
+  transform: translateX(-100px);
+}
+
+/* Side-view sushi pieces with woodblock patterns */
 .sushi-piece {
   position: relative;
-  width: 160px;
-  height: 100px;
-  transform-style: preserve-3d;
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px 12px 8px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
   animation: float 3s ease-in-out infinite;
   cursor: pointer;
-  transition: transform 0.3s ease;
 }
 
-.sushi-piece:hover {
-  transform: rotateY(10deg) scale(1.1);
-}
-
-/* Sushi Plate Labels */
-.sushi-label-top {
-  position: absolute;
-  top: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: #00ffff;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  text-align: center;
-  white-space: nowrap;
-  border: 1px solid #00ffff;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-  font-family: 'Courier New', monospace;
-  letter-spacing: 1px;
-}
-
-.sushi-label-bottom {
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: #ffff00;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: bold;
-  text-align: center;
-  white-space: nowrap;
-  border: 1px solid #ffff00;
-  box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
-  font-family: 'Courier New', monospace;
-  letter-spacing: 1px;
-}
-
-/* 3D Sushi Types */
-.sushi-salmon {
-  background: 
-    linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 50%, #ff4757 100%);
-  border-radius: 15px 15px 8px 8px;
-  box-shadow: 
-    0 8px 16px rgba(255, 107, 107, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.sushi-tuna {
-  background: 
-    linear-gradient(135deg, #ff3838 0%, #ff6b9d 50%, #c44569 100%);
-  border-radius: 15px 15px 8px 8px;
-  box-shadow: 
-    0 8px 16px rgba(255, 56, 56, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.sushi-shrimp {
-  background: 
-    linear-gradient(135deg, #ffa726 0%, #ffcc80 50%, #f57c00 100%);
-  border-radius: 15px 15px 8px 8px;
-  box-shadow: 
-    0 8px 16px rgba(255, 167, 38, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.sushi-eel {
-  background: 
-    linear-gradient(135deg, #8d4004 0%, #a0522d 50%, #654321 100%);
-  border-radius: 15px 15px 8px 8px;
-  box-shadow: 
-    0 8px 16px rgba(141, 64, 4, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.2),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.sushi-rice {
+/* Rice base - added via ::after pseudo-element */
+.sushi-piece::after {
+  content: '';
   position: absolute;
   bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: #f8f5f0;
+  border-radius: 0 0 8px 8px;
+  background-image: 
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'><path d='M0 0h4v4H0zM4 4h4v4H4z' fill='%23faf8f5' opacity='0.3'/></svg>");
+  background-size: 2px 2px;
+  z-index: 1;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Salmon nigiri */
+.sushi-piece.salmon {
+  width: 45px;
+  height: 25px;
+  background: linear-gradient(135deg, #ff8a65 0%, #ff6347 30%, #e64545 100%);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M0 8h4l4-4v8l-4-4H0z' fill='%23ff4500' opacity='0.15'/><path d='M8 0v4l4-4h4v4l-4 4h4v4l-4-4v4h-4l4-4V4L8 0z' fill='%23ff6347' opacity='0.2'/></svg>");
+  background-size: 8px 8px;
+}
+
+/* Tuna nigiri */
+.sushi-piece.tuna {
+  width: 45px;
+  height: 25px;
+  background: linear-gradient(135deg, #8b0000 0%, #dc143c 30%, #b22222 100%);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M0 0h8v8H0zM8 8h8v8H8z' fill='%23600' opacity='0.25'/><path d='M4 0L0 4v4l4-4h4L4 0zM12 8l4 4v4l-4-4H8l4-4z' fill='%23800' opacity='0.2'/></svg>");
+  background-size: 6px 6px;
+}
+
+/* Maki roll */
+.sushi-piece.roll {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #2d5016 0%, #4a7c59 30%, #2d5016 100%);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><circle cx='6' cy='6' r='2' fill='%23ff6347' opacity='0.6'/><circle cx='6' cy='6' r='4' fill='none' stroke='%23f8f5f0' stroke-width='1' opacity='0.4'/></svg>");
+  background-size: 12px 12px;
+  border: 2px solid #2d5016;
+}
+
+.sushi-piece.roll::after {
+  display: none; /* Rolls don't show rice base */
+}
+
+/* Strategic value indicators */
+.sushi-piece.golden-opportunity {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid #ffd700;
+}
+
+.sushi-piece.quality-choice {
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid #00ff41;
+}
+
+.sushi-piece.high-risk {
+  box-shadow: 0 0 12px rgba(255, 65, 65, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ff4141;
+  opacity: 0.8;
+}
+
+/* Depth perspective effects */
+.sushi-plate.depth-close .sushi-piece {
+  transform: scale(1.15);
+  filter: brightness(1.1) contrast(1.05);
+}
+
+.sushi-plate.depth-medium .sushi-piece {
+  transform: scale(1.0);
+  filter: brightness(1.0) contrast(1.0);
+}
+
+.sushi-plate.depth-far .sushi-piece {
+  transform: scale(0.85);
+  filter: brightness(0.9) contrast(0.95);
+  opacity: 0.9;
+}
+
+/* Sushi labels */
+.sushi-label {
+  position: absolute;
+  bottom: -35px;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
-  height: 30px;
-  background: 
-    linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 50%, #d8d8d8 100%);
-  border-radius: 0 0 12px 12px;
-  box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.8),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-size: 10px;
+  color: #333;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sushi-label-company {
+  font-weight: bold;
+  font-size: 11px;
+  color: #555;
+}
+
+.sushi-label-role {
+  font-size: 9px;
+  color: #777;
+  margin-top: 1px;
+}
+
+/* Hover effects */
+.sushi-plate:hover .sushi-piece {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sushi-plate:hover .sushi-label {
+  background: rgba(255, 255, 255, 1);
+  transform: translateX(-50%) translateY(-2px);
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotateY(0deg); }
-  50% { transform: translateY(-10px) rotateY(5deg); }
+  50% { transform: translateY(-5px) rotateY(2deg); }
 }
 
 /* 80s Baseball Card */

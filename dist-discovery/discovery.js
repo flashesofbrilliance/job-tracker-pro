@@ -2467,47 +2467,74 @@
     return icons[mastery] || '🏅';
   }
   
-  function createSushiPlate(reco, index) {
-    const sushiEmoji = getSushiForRole(reco.roleTitle);
-    const analysis = analyzeJobStrategically(reco);
-    
-    const plate = document.createElement('div');
-    plate.className = `sushi-plate entering ${analysis.category}`;
-    plate.dataset.jobId = reco.id;
-    plate.dataset.index = index;
-    plate.dataset.strategicValue = analysis.strategicValue;
-    plate.dataset.wasteRisk = analysis.wasteRisk;
-    
-    // Visual indicators based on strategic analysis
-    let plateStyle = '';
-    let glowEffect = '';
-    
-    if (analysis.category === 'golden_sushi') {
-      plateStyle = 'border: 3px solid #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);';
-      glowEffect = 'golden-glow';
-    } else if (analysis.category === 'quality_choice') {
-      plateStyle = 'border: 2px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);';
-      glowEffect = 'green-glow';
-    } else if (analysis.wasteRisk > 0.6) {
-      plateStyle = 'border: 2px solid #ff4141; box-shadow: 0 0 15px rgba(255, 65, 65, 0.4);';
-      glowEffect = 'warning-glow';
+  // Global 3D scene manager instance
+  let sushiSceneManager = null;
+  
+  function initialize3DScene() {
+    const canvas = document.getElementById('sushi-canvas');
+    if (!canvas) {
+      console.warn('Canvas element not found for 3D scene');
+      return false;
     }
     
-    plate.innerHTML = `
-      <div class="sushi-piece" style="${plateStyle}">
-        <div class="sushi-emoji">${sushiEmoji}</div>
-        <div class="sushi-label-top">${reco.roleTitle}</div>
-        <div class="sushi-label-bottom">${reco.company}</div>
-        <div class="strategic-indicators ${glowEffect}">
-          <div class="competition-indicator">Competition: ${Math.round(analysis.competitionLevel * 100)}%</div>
-          <div class="time-indicator">Time: ${analysis.timeToValue}d</div>
-          <div class="strategic-value">Strategic: ${(analysis.strategicValue * 100).toFixed(0)}%</div>
-        </div>
-      </div>
-    `;
+    try {
+      // Initialize with GPU optimization if available
+      const gpuOptimizer = window.gpuOptimizationManager || null;
+      sushiSceneManager = new SushiSceneManager(canvas, gpuOptimizer);
+      
+      // Handle resize
+      window.addEventListener('resize', () => {
+        if (sushiSceneManager) {
+          sushiSceneManager.resize();
+        }
+      });
+      
+      console.log('✅ 3D Sushi Scene initialized');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to initialize 3D scene:', error);
+      return false;
+    }
+  }
+  
+  function createSushiPlate(reco, index) {
+    const analysis = analyzeJobStrategically(reco);
     
-    // Store analysis for later use
-    plate._analysis = analysis;
+    // Determine sushi type based on role
+    let sushiType = 'salmon'; // default
+    const role = reco.roleTitle.toLowerCase();
+    if (role.includes('senior') || role.includes('principal') || role.includes('staff')) {
+      sushiType = 'tuna'; // Premium roles get tuna
+    } else if (role.includes('manager') || role.includes('lead') || role.includes('director')) {
+      sushiType = 'roll'; // Management roles get rolls
+    }
+    
+    // Create a virtual plate object for compatibility with existing code
+    const plate = {
+      dataset: {
+        jobId: reco.id,
+        index: index,
+        strategicValue: analysis.strategicValue,
+        wasteRisk: analysis.wasteRisk
+      },
+      className: `sushi-plate entering ${analysis.category}`,
+      _analysis: analysis,
+      _sushiType: sushiType,
+      _reco: reco,
+      classList: {
+        add: function() {},
+        remove: function() {},
+        contains: function() { return false; }
+      },
+      remove: function() {},
+      addEventListener: function() {},
+      style: { pointerEvents: 'auto' }
+    };
+    
+    // Display the 3D sushi immediately
+    if (sushiSceneManager) {
+      sushiSceneManager.displaySushi(sushiType, analysis.strategicValue, analysis.category);
+    }
     
     return plate;
   }
@@ -2519,21 +2546,18 @@
     }
     
     conveyorBelt.isProcessing = true;
-    const beltContainer = $('#conveyor-belt');
     const plate = createSushiPlate(reco, currentRecos.findIndex(r => r.id === reco.id));
     
-    beltContainer.appendChild(plate);
     conveyorBelt.currentPlate = plate;
     conveyorBelt.activeJob = reco;
     
     // Update job info panel immediately
     updateJobInfoPanel(reco);
     
-    // Start the movement sequence (timing based on belt speed)
-    const decisionPhaseDelay = Math.floor(conveyorBelt.beltSpeed * 0.4);
+    // Start the decision phase immediately since 3D sushi is displayed
     setTimeout(() => {
       startDecisionPhase(plate, reco);
-    }, decisionPhaseDelay);
+    }, 1000); // Short delay for 3D scene to settle
     
     // Auto-miss if no action taken
     setTimeout(() => {
@@ -3045,6 +3069,9 @@
     checkDailyPreparation();
     updatePreparationDisplay();
     updateKnifeSkillsDisplay();
+    
+    // Initialize 3D Sushi Scene
+    initialize3DScene();
     
     render();
     
