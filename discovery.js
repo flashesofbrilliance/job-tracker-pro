@@ -1739,50 +1739,1000 @@
     }
   }
   
-  function displayCurrentSushi() {
-    if (!currentRecos.length) return;
+  // Mise en Place System - Daily Preparation Rituals
+  let miseEnPlace = {
+    dailyPrep: {
+      profileUpdated: false,    // LinkedIn/resume current
+      researchCompleted: 0,    // Companies researched today
+      networkingTouches: 0,    // People contacted today
+      skillsPracticed: false,  // Coding/portfolio work
+      marketIntel: false,      // Industry trends checked
+      toolsSharpened: false    // Applications/templates updated
+    },
+    preparationScore: 0,       // 0-100, daily prep completion
+    consistencyStreak: 0,      // Days of good preparation
+    luckSurfaceArea: 1.0,     // Multiplier for opportunities (0.5-2.0)
+    ritualReminders: [],
+    lastPrepDate: null
+  };
+  
+  // Knife Skills System - Application Precision & Efficiency
+  let knifeSkills = {
+    precision: {
+      targetingAccuracy: 0.5,    // How well jobs match criteria
+      customizationLevel: 0.3,   // Cover letter personalization
+      timingMastery: 0.4,        // Applying at optimal times
+      followUpSharpness: 0.2     // Post-application engagement
+    },
+    speed: {
+      applicationVelocity: 1.0,  // Apps per hour when focused
+      researchEfficiency: 1.0,   // Minutes per company research
+      decisionSpeed: 1.0,        // Seconds to evaluate opportunity
+      batchProcessing: 1.0       // Multiple apps efficiency
+    },
+    technique: {
+      cutClean: 0,              // No wasted motions
+      consistency: 0,           // Same quality every time
+      adaptability: 0,          // Adjust to different situations
+      presentation: 0           // Professional polish
+    },
+    overallSkillLevel: 'NOVICE', // NOVICE -> APPRENTICE -> CHEF -> MASTER
+    experiencePoints: 0,
+    masteryUnlocked: []
+  };
+  
+  // Sushi Chef Strategy System
+  let chefStrategy = {
+    offerTarget: 2, // Target number of offers needed
+    deadline: 30, // Days until deadline
+    callbackRatio: 0.15, // Expected callback rate (15%)
+    offerRatio: 0.3, // Offer rate from callbacks (30%)
+    currentOffers: 0,
+    applicationsNeeded: 0,
+    weeklyTarget: 0,
+    dailyTarget: 0,
+    todaysApplications: 0,
+    competitionThreshold: 0.7, // Above this = too competitive
+    fitThreshold: 7.5, // Below this = not worth applying
+    timeToValueThreshold: 14 // Days for first interview
+  };
+  
+  // Conveyor Belt System with Chef Pacing
+  let conveyorBelt = {
+    activeJob: null,
+    queue: [],
+    missedCount: 0,
+    wastedTime: 0, // Track shiny objects rejected
+    isProcessing: false,
+    currentPlate: null,
+    decisionTimer: null,
+    beltSpeed: 8000, // Base speed, will be dynamic
+    decisionWindow: 2000 // Decision time in ms
+  };
+  
+  // Initialize strategy calculations
+  function calculateChefStrategy() {
+    const offersStillNeeded = Math.max(0, chefStrategy.offerTarget - chefStrategy.currentOffers);
+    const callbacksNeeded = Math.ceil(offersStillNeeded / chefStrategy.offerRatio);
+    chefStrategy.applicationsNeeded = Math.ceil(callbacksNeeded / chefStrategy.callbackRatio);
     
-    const reco = currentRecos[currentIndex];
-    const sushiEmoji = getSushiForRole(reco.roleTitle);
+    const daysLeft = chefStrategy.deadline;
+    chefStrategy.weeklyTarget = Math.ceil(chefStrategy.applicationsNeeded / (daysLeft / 7));
+    chefStrategy.dailyTarget = Math.ceil(chefStrategy.applicationsNeeded / daysLeft);
     
-    // Update sushi stage
-    const stage = $('#sushi-stage');
-    stage.innerHTML = `
-      <div class="sushi-piece">
-        <div class="sushi-label-top">${reco.roleTitle}</div>
-        <div class="sushi-emoji" style="font-size: 60px;">${sushiEmoji}</div>
-        <div class="sushi-label-bottom">${reco.company}</div>
+    // Adjust belt speed based on urgency
+    const urgencyFactor = Math.max(0.3, Math.min(2.0, chefStrategy.dailyTarget / 3));
+    conveyorBelt.beltSpeed = Math.max(4000, Math.floor(8000 / urgencyFactor));
+    conveyorBelt.decisionWindow = Math.max(1000, Math.floor(2000 / urgencyFactor));
+    
+    console.log(`🍣 Chef Strategy: Need ${chefStrategy.applicationsNeeded} applications for ${chefStrategy.offerTarget} offers`);
+    console.log(`⚡ Belt speed: ${conveyorBelt.beltSpeed}ms, Decision window: ${conveyorBelt.decisionWindow}ms`);
+  }
+  
+  // Job Analysis Functions
+  function analyzeJobStrategically(reco) {
+    const analysis = {
+      fitScore: reco.expectedFit,
+      competitionLevel: calculateCompetitionLevel(reco),
+      timeToValue: calculateTimeToValue(reco),
+      strategicValue: 0,
+      category: '',
+      chefRecommendation: '',
+      wasteRisk: 0
+    };
+    
+    // Calculate strategic value
+    const fitWeight = 0.4;
+    const competitionWeight = 0.3;
+    const timeWeight = 0.3;
+    
+    const competitionScore = 1 - analysis.competitionLevel; // Lower competition = higher score
+    const timeScore = Math.max(0, 1 - (analysis.timeToValue / 30)); // Faster = higher score
+    
+    analysis.strategicValue = (
+      (analysis.fitScore / 10) * fitWeight +
+      competitionScore * competitionWeight +
+      timeScore * timeWeight
+    );
+    
+    // Categorize the job
+    if (analysis.fitScore >= 9 && analysis.competitionLevel <= 0.5) {
+      analysis.category = 'golden_sushi';
+      analysis.chefRecommendation = 'Grab immediately! Perfect fit, low competition.';
+    } else if (analysis.fitScore >= 8.5 && analysis.competitionLevel <= 0.7) {
+      analysis.category = 'quality_choice';
+      analysis.chefRecommendation = 'Excellent choice - apply today!';
+    } else if (analysis.fitScore >= 8 && analysis.competitionLevel > 0.8) {
+      analysis.category = 'competitive_stretch';
+      analysis.chefRecommendation = 'High competition - consider if you have unique edge.';
+      analysis.wasteRisk = 0.6;
+    } else if (analysis.fitScore >= 8.5 && analysis.timeToValue > 21) {
+      analysis.category = 'slow_cooker';
+      analysis.chefRecommendation = 'Good fit but slow process - apply if timeline allows.';
+      analysis.wasteRisk = 0.4;
+    } else if (analysis.fitScore < chefStrategy.fitThreshold) {
+      analysis.category = 'poor_fit';
+      analysis.chefRecommendation = 'Below fit threshold - likely waste of time.';
+      analysis.wasteRisk = 0.8;
+    } else if (analysis.competitionLevel > chefStrategy.competitionThreshold) {
+      analysis.category = 'overcrowded';
+      analysis.chefRecommendation = 'Too competitive - focus on better opportunities.';
+      analysis.wasteRisk = 0.7;
+    } else {
+      analysis.category = 'mediocre';
+      analysis.chefRecommendation = 'Mediocre choice - consider only if behind on targets.';
+      analysis.wasteRisk = 0.5;
+    }
+    
+    return analysis;
+  }
+  
+  function calculateCompetitionLevel(reco) {
+    let competition = 0.5; // Base competition level
+    
+    // Company factors
+    if (['Google', 'Apple', 'Microsoft', 'Meta', 'Amazon'].includes(reco.company)) {
+      competition += 0.3; // Big tech = high competition
+    }
+    
+    if (['Netflix', 'Uber', 'Airbnb', 'Stripe'].includes(reco.company)) {
+      competition += 0.2; // Popular companies
+    }
+    
+    // Role factors
+    if (reco.roleTitle.toLowerCase().includes('senior')) {
+      competition += 0.1;
+    }
+    
+    if (reco.roleTitle.toLowerCase().includes('principal') || reco.roleTitle.toLowerCase().includes('staff')) {
+      competition += 0.2;
+    }
+    
+    if (reco.roleTitle.toLowerCase().includes('lead') || reco.roleTitle.toLowerCase().includes('manager')) {
+      competition += 0.15;
+    }
+    
+    // Location factors
+    if (reco.location === 'San Francisco' || reco.location === 'New York' || reco.location === 'Seattle') {
+      competition += 0.1;
+    }
+    
+    // Salary factors (higher salary = more competition)
+    if (reco.salary && reco.salary.includes('$')) {
+      const salaryMatch = reco.salary.match(/\$(\d+)k/);
+      if (salaryMatch) {
+        const salary = parseInt(salaryMatch[1]);
+        if (salary > 200) competition += 0.2;
+        else if (salary > 150) competition += 0.1;
+      }
+    }
+    
+    return Math.min(1.0, Math.max(0.1, competition));
+  }
+  
+  function calculateTimeToValue(reco) {
+    let timeToValue = 14; // Base 2 weeks
+    
+    // Company size factors
+    if (['Google', 'Apple', 'Microsoft', 'Meta', 'Amazon'].includes(reco.company)) {
+      timeToValue += 14; // Big tech = slower process
+    }
+    
+    if (reco.company.includes('Bank') || reco.sector === 'Finance') {
+      timeToValue += 10; // Financial = compliance delays
+    }
+    
+    if (reco.sector === 'Government' || reco.sector === 'Defense') {
+      timeToValue += 21; // Government = very slow
+    }
+    
+    // Role level factors
+    if (reco.roleTitle.toLowerCase().includes('principal') || reco.roleTitle.toLowerCase().includes('staff')) {
+      timeToValue += 7; // Senior roles = more interviews
+    }
+    
+    if (reco.roleTitle.toLowerCase().includes('director') || reco.roleTitle.toLowerCase().includes('vp')) {
+      timeToValue += 14; // Executive = very long process
+    }
+    
+    // Startup factor (faster)
+    if (reco.tags.includes('Startup') || reco.tags.includes('Series A') || reco.tags.includes('Series B')) {
+      timeToValue = Math.max(7, timeToValue - 7);
+    }
+    
+    return Math.max(3, timeToValue); // Minimum 3 days
+  }
+  
+  // Chef Advice System
+  function showChefAdvice(analysis, reco) {
+    const chefMessage = document.createElement('div');
+    chefMessage.className = 'chef-strategic-advice';
+    
+    let urgencyClass = '';
+    let adviceIcon = '🍣';
+    
+    if (analysis.category === 'golden_sushi') {
+      urgencyClass = 'urgent-recommend';
+      adviceIcon = '🌟';
+    } else if (analysis.wasteRisk > 0.6) {
+      urgencyClass = 'warning';
+      adviceIcon = '⚠️';
+    } else if (analysis.category === 'quality_choice') {
+      urgencyClass = 'recommend';
+      adviceIcon = '✅';
+    }
+    
+    chefMessage.innerHTML = `
+      <div class="chef-advice-content ${urgencyClass}">
+        <div class="chef-icon">👨‍🍳</div>
+        <div class="advice-bubble">
+          <div class="advice-header">
+            <span class="advice-icon">${adviceIcon}</span>
+            <span class="advice-category">${analysis.category.toUpperCase()}</span>
+          </div>
+          <div class="chef-recommendation">${analysis.chefRecommendation}</div>
+          <div class="strategic-breakdown">
+            <div class="metric">Fit: ${analysis.fitScore.toFixed(1)}/10</div>
+            <div class="metric">Competition: ${(analysis.competitionLevel * 100).toFixed(0)}%</div>
+            <div class="metric">Time to Interview: ${analysis.timeToValue}d</div>
+          </div>
+          <div class="strategy-context">
+            Target: ${chefStrategy.dailyTarget - chefStrategy.todaysApplications} more today
+          </div>
+        </div>
       </div>
     `;
     
-    // Update baseball card
-    $('#card-company').textContent = reco.company;
-    $('#card-role').textContent = reco.roleTitle;
-    $('#salary-value').textContent = reco.salary || '$-- - $--';
+    document.body.appendChild(chefMessage);
+    
+    // Animate in
+    gsap.fromTo(chefMessage,
+      { x: -400, opacity: 0, scale: 0.8 },
+      { x: 20, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.2)" }
+    );
+    
+    // Auto-remove
+    setTimeout(() => {
+      gsap.to(chefMessage, {
+        x: -400,
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.4,
+        onComplete: () => chefMessage.remove()
+      });
+    }, conveyorBelt.decisionWindow - 200); // Remove just before decision window closes
+  }
+  
+  // Mise en Place Functions - Daily Preparation Management
+  function checkDailyPreparation() {
+    const today = new Date().toDateString();
+    
+    if (miseEnPlace.lastPrepDate !== today) {
+      // Reset daily prep for new day
+      miseEnPlace.dailyPrep = {
+        profileUpdated: false,
+        researchCompleted: 0,
+        networkingTouches: 0,
+        skillsPracticed: false,
+        marketIntel: false,
+        toolsSharpened: false
+      };
+      miseEnPlace.lastPrepDate = today;
+    }
+    
+    calculatePreparationScore();
+    updateLuckSurfaceArea();
+  }
+  
+  function calculatePreparationScore() {
+    const prep = miseEnPlace.dailyPrep;
+    let score = 0;
+    
+    // Core preparation items (80% of score)
+    if (prep.profileUpdated) score += 20;
+    if (prep.researchCompleted >= 3) score += 20;
+    else score += (prep.researchCompleted / 3) * 20;
+    if (prep.networkingTouches >= 2) score += 15;
+    else score += (prep.networkingTouches / 2) * 15;
+    if (prep.skillsPracticed) score += 15;
+    if (prep.marketIntel) score += 10;
+    
+    // Bonus for completeness (20% of score)
+    const completedItems = [
+      prep.profileUpdated,
+      prep.researchCompleted >= 3,
+      prep.networkingTouches >= 2,
+      prep.skillsPracticed,
+      prep.marketIntel,
+      prep.toolsSharpened
+    ].filter(Boolean).length;
+    
+    if (completedItems === 6) score += 20; // Perfect preparation bonus
+    
+    miseEnPlace.preparationScore = Math.min(100, Math.round(score));
+    
+    // Update consistency streak
+    if (score >= 70) {
+      miseEnPlace.consistencyStreak++;
+    } else if (score < 50) {
+      miseEnPlace.consistencyStreak = Math.max(0, miseEnPlace.consistencyStreak - 1);
+    }
+  }
+  
+  function updateLuckSurfaceArea() {
+    // Preparation score influences opportunity multiplier
+    const baseMultiplier = 0.5; // Unprepared minimum
+    const prepMultiplier = (miseEnPlace.preparationScore / 100) * 1.0;
+    const streakBonus = Math.min(0.5, miseEnPlace.consistencyStreak * 0.02);
+    
+    miseEnPlace.luckSurfaceArea = Math.min(2.0, baseMultiplier + prepMultiplier + streakBonus);
+    
+    // Adjust chef strategy based on preparation
+    chefStrategy.dailyTarget = Math.round(
+      chefStrategy.dailyTarget * miseEnPlace.luckSurfaceArea
+    );
+  }
+  
+  function completePreparationItem(item) {
+    switch(item) {
+      case 'profile':
+        miseEnPlace.dailyPrep.profileUpdated = true;
+        showChefAdviceMessage(`📋 Profile updated! Your presentation is sharp today.`);
+        break;
+      case 'research':
+        miseEnPlace.dailyPrep.researchCompleted++;
+        showChefAdviceMessage(`🔍 Company research +1. Knowledge is your secret ingredient.`);
+        break;
+      case 'network':
+        miseEnPlace.dailyPrep.networkingTouches++;
+        showChefAdviceMessage(`🤝 Network touch +1. Relationships unlock hidden opportunities.`);
+        break;
+      case 'skills':
+        miseEnPlace.dailyPrep.skillsPracticed = true;
+        showChefAdviceMessage(`⚡ Skills practiced! Your craft improves daily.`);
+        break;
+      case 'intel':
+        miseEnPlace.dailyPrep.marketIntel = true;
+        showChefAdviceMessage(`📊 Market intel gathered. Stay ahead of trends.`);
+        break;
+      case 'tools':
+        miseEnPlace.dailyPrep.toolsSharpened = true;
+        showChefAdviceMessage(`🔧 Tools sharpened! Efficiency unlocked.`);
+        break;
+    }
+    
+    calculatePreparationScore();
+    updateLuckSurfaceArea();
+    updatePreparationDisplay();
+  }
+  
+  function showChefAdviceMessage(message) {
+    const adviceElement = document.createElement('div');
+    adviceElement.className = 'chef-quick-advice';
+    adviceElement.innerHTML = `
+      <div class="chef-bubble">
+        <span class="chef-emoji">👨‍🍳</span>
+        <span class="advice-text">${message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(adviceElement);
+    
+    // Animate in
+    gsap.fromTo(adviceElement,
+      { y: -50, opacity: 0 },
+      { y: 10, opacity: 1, duration: 0.3 }
+    );
+    
+    // Auto-remove
+    setTimeout(() => {
+      gsap.to(adviceElement, {
+        y: -50,
+        opacity: 0,
+        duration: 0.3,
+        onComplete: () => adviceElement.remove()
+      });
+    }, 2500);
+  }
+  
+  function updatePreparationDisplay() {
+    const prepDisplay = document.getElementById('preparation-status');
+    if (!prepDisplay) return;
+    
+    const prep = miseEnPlace.dailyPrep;
+    const score = miseEnPlace.preparationScore;
+    const streak = miseEnPlace.consistencyStreak;
+    
+    prepDisplay.innerHTML = `
+      <div class="prep-header">
+        <span class="prep-title">📋 Mise en Place</span>
+        <span class="prep-score ${score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'needs-work'}">${score}/100</span>
+      </div>
+      <div class="prep-items">
+        <div class="prep-item ${prep.profileUpdated ? 'completed' : ''}">
+          <span class="prep-icon">📝</span> Profile Updated
+        </div>
+        <div class="prep-item ${prep.researchCompleted >= 3 ? 'completed' : ''}">
+          <span class="prep-icon">🔍</span> Research (${prep.researchCompleted}/3)
+        </div>
+        <div class="prep-item ${prep.networkingTouches >= 2 ? 'completed' : ''}">
+          <span class="prep-icon">🤝</span> Network (${prep.networkingTouches}/2)
+        </div>
+        <div class="prep-item ${prep.skillsPracticed ? 'completed' : ''}">
+          <span class="prep-icon">⚡</span> Skills Practice
+        </div>
+        <div class="prep-item ${prep.marketIntel ? 'completed' : ''}">
+          <span class="prep-icon">📊</span> Market Intel
+        </div>
+        <div class="prep-item ${prep.toolsSharpened ? 'completed' : ''}">
+          <span class="prep-icon">🔧</span> Tools Sharpened
+        </div>
+      </div>
+      <div class="prep-stats">
+        <div class="luck-surface">🍀 Luck Surface: ${miseEnPlace.luckSurfaceArea.toFixed(1)}x</div>
+        <div class="streak">🔥 Streak: ${streak} days</div>
+      </div>
+    `;
+  }
+  
+  // Knife Skills Functions - Application Precision & Efficiency
+  function recordApplicationTechnique(reco, action, timeSpent, wasCustomized) {
+    const startTime = Date.now();
+    
+    // Record precision metrics
+    knifeSkills.precision.targetingAccuracy = updateMetric(
+      knifeSkills.precision.targetingAccuracy,
+      reco.expectedFit >= 8.0 ? 1.0 : (reco.expectedFit / 10),
+      0.1
+    );
+    
+    if (action === 'accept' && wasCustomized) {
+      knifeSkills.precision.customizationLevel = updateMetric(
+        knifeSkills.precision.customizationLevel,
+        1.0,
+        0.05
+      );
+    }
+    
+    // Record speed metrics  
+    const decisionSpeed = (conveyorBelt.decisionWindow - timeSpent) / conveyorBelt.decisionWindow;
+    knifeSkills.speed.decisionSpeed = updateMetric(
+      knifeSkills.speed.decisionSpeed,
+      Math.max(0.1, decisionSpeed),
+      0.05
+    );
+    
+    // Update experience points
+    knifeSkills.experiencePoints += action === 'accept' ? 10 : 2;
+    
+    evaluateSkillLevel();
+    updateKnifeSkillsDisplay();
+  }
+  
+  function updateMetric(currentValue, newValue, learningRate) {
+    // Exponential moving average for smooth skill progression
+    return currentValue * (1 - learningRate) + newValue * learningRate;
+  }
+  
+  function evaluateSkillLevel() {
+    const skills = knifeSkills;
+    
+    // Calculate overall technique score
+    const precisionAvg = Object.values(skills.precision).reduce((a, b) => a + b, 0) / Object.keys(skills.precision).length;
+    const speedAvg = Object.values(skills.speed).reduce((a, b) => a + b, 0) / Object.keys(skills.speed).length;
+    const techniqueAvg = Object.values(skills.technique).reduce((a, b) => a + b, 0) / Object.keys(skills.technique).length;
+    
+    const overallScore = (precisionAvg + speedAvg + techniqueAvg) / 3;
+    const xpFactor = Math.min(1.0, skills.experiencePoints / 1000); // XP caps at 1000
+    const finalScore = (overallScore * 0.7) + (xpFactor * 0.3);
+    
+    // Determine skill level
+    let newLevel = 'NOVICE';
+    if (finalScore >= 0.8 && skills.experiencePoints >= 800) {
+      newLevel = 'MASTER';
+    } else if (finalScore >= 0.65 && skills.experiencePoints >= 400) {
+      newLevel = 'CHEF';
+    } else if (finalScore >= 0.45 && skills.experiencePoints >= 150) {
+      newLevel = 'APPRENTICE';
+    }
+    
+    // Check for level up
+    if (newLevel !== skills.overallSkillLevel) {
+      const oldLevel = skills.overallSkillLevel;
+      skills.overallSkillLevel = newLevel;
+      celebrateSkillLevelUp(oldLevel, newLevel);
+    }
+    
+    // Unlock mastery achievements
+    unlockMasteryAchievements(skills);
+  }
+  
+  function unlockMasteryAchievements(skills) {
+    const achievements = [];
+    
+    if (skills.precision.targetingAccuracy >= 0.8 && !skills.masteryUnlocked.includes('sniper')) {
+      achievements.push('sniper');
+      skills.masteryUnlocked.push('sniper');
+    }
+    
+    if (skills.speed.decisionSpeed >= 0.85 && !skills.masteryUnlocked.includes('lightning')) {
+      achievements.push('lightning');
+      skills.masteryUnlocked.push('lightning');
+    }
+    
+    if (skills.precision.customizationLevel >= 0.7 && !skills.masteryUnlocked.includes('artisan')) {
+      achievements.push('artisan');
+      skills.masteryUnlocked.push('artisan');
+    }
+    
+    achievements.forEach(achievement => {
+      showMasteryUnlock(achievement);
+    });
+  }
+  
+  function celebrateSkillLevelUp(oldLevel, newLevel) {
+    const celebration = document.createElement('div');
+    celebration.className = 'skill-level-up';
+    celebration.innerHTML = `
+      <div class="level-up-content">
+        <div class="level-up-header">🔪 SKILL LEVEL UP! 🔪</div>
+        <div class="level-progression">
+          <span class="old-level">${oldLevel}</span>
+          <span class="arrow">→</span>
+          <span class="new-level">${newLevel}</span>
+        </div>
+        <div class="level-description">${getLevelDescription(newLevel)}</div>
+      </div>
+    `;
+    
+    document.body.appendChild(celebration);
+    
+    // Animate celebration
+    gsap.fromTo(celebration,
+      { scale: 0, rotation: -180, opacity: 0 },
+      { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: "back.out(1.7)" }
+    );
+    
+    // Auto-remove after celebration
+    setTimeout(() => {
+      gsap.to(celebration, {
+        scale: 0.5,
+        opacity: 0,
+        y: -100,
+        duration: 0.5,
+        onComplete: () => celebration.remove()
+      });
+    }, 3500);
+  }
+  
+  function getLevelDescription(level) {
+    const descriptions = {
+      'NOVICE': 'Learning the basics of strategic job hunting',
+      'APPRENTICE': 'Building precision and speed in applications',
+      'CHEF': 'Master of strategic timing and targeting',
+      'MASTER': 'Elite job hunter with maximum efficiency'
+    };
+    return descriptions[level] || '';
+  }
+  
+  function showMasteryUnlock(achievement) {
+    const achievements = {
+      'sniper': { icon: '🎯', title: 'Sniper', desc: 'Deadly accurate targeting' },
+      'lightning': { icon: '⚡', title: 'Lightning', desc: 'Incredibly fast decisions' },
+      'artisan': { icon: '🎨', title: 'Artisan', desc: 'Master of customization' }
+    };
+    
+    const unlock = achievements[achievement];
+    if (!unlock) return;
+    
+    const masteryElement = document.createElement('div');
+    masteryElement.className = 'mastery-unlock';
+    masteryElement.innerHTML = `
+      <div class="mastery-content">
+        <div class="mastery-icon">${unlock.icon}</div>
+        <div class="mastery-title">${unlock.title} MASTERY UNLOCKED!</div>
+        <div class="mastery-desc">${unlock.desc}</div>
+      </div>
+    `;
+    
+    document.body.appendChild(masteryElement);
+    
+    // Animate unlock
+    gsap.fromTo(masteryElement,
+      { x: 300, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
+    );
+    
+    setTimeout(() => {
+      gsap.to(masteryElement, {
+        x: 300,
+        opacity: 0,
+        duration: 0.4,
+        onComplete: () => masteryElement.remove()
+      });
+    }, 3000);
+  }
+  
+  function updateKnifeSkillsDisplay() {
+    const skillsDisplay = document.getElementById('knife-skills-status');
+    if (!skillsDisplay) return;
+    
+    const skills = knifeSkills;
+    const precisionAvg = Object.values(skills.precision).reduce((a, b) => a + b, 0) / Object.keys(skills.precision).length;
+    const speedAvg = Object.values(skills.speed).reduce((a, b) => a + b, 0) / Object.keys(skills.speed).length;
+    
+    skillsDisplay.innerHTML = `
+      <div class="skills-header">
+        <span class="skills-title">🔪 Knife Skills</span>
+        <span class="skill-level ${skills.overallSkillLevel.toLowerCase()}">${skills.overallSkillLevel}</span>
+      </div>
+      <div class="skills-metrics">
+        <div class="skill-metric">
+          <span class="metric-name">Precision</span>
+          <div class="metric-bar">
+            <div class="metric-fill" style="width: ${precisionAvg * 100}%"></div>
+          </div>
+          <span class="metric-value">${(precisionAvg * 100).toFixed(0)}%</span>
+        </div>
+        <div class="skill-metric">
+          <span class="metric-name">Speed</span>
+          <div class="metric-bar">
+            <div class="metric-fill" style="width: ${speedAvg * 100}%"></div>
+          </div>
+          <span class="metric-value">${(speedAvg * 100).toFixed(0)}%</span>
+        </div>
+        <div class="skill-metric">
+          <span class="metric-name">Experience</span>
+          <div class="metric-bar">
+            <div class="metric-fill" style="width: ${Math.min(100, (skills.experiencePoints / 1000) * 100)}%"></div>
+          </div>
+          <span class="metric-value">${skills.experiencePoints} XP</span>
+        </div>
+      </div>
+      <div class="mastery-badges">
+        ${skills.masteryUnlocked.map(mastery => `<span class="mastery-badge ${mastery}">${getMasteryIcon(mastery)}</span>`).join('')}
+      </div>
+    `;
+  }
+  
+  function getMasteryIcon(mastery) {
+    const icons = {
+      'sniper': '🎯',
+      'lightning': '⚡',
+      'artisan': '🎨'
+    };
+    return icons[mastery] || '🏅';
+  }
+  
+  function createSushiPlate(reco, index) {
+    const sushiEmoji = getSushiForRole(reco.roleTitle);
+    const analysis = analyzeJobStrategically(reco);
+    
+    const plate = document.createElement('div');
+    plate.className = `sushi-plate entering ${analysis.category}`;
+    plate.dataset.jobId = reco.id;
+    plate.dataset.index = index;
+    plate.dataset.strategicValue = analysis.strategicValue;
+    plate.dataset.wasteRisk = analysis.wasteRisk;
+    
+    // Visual indicators based on strategic analysis
+    let plateStyle = '';
+    let glowEffect = '';
+    
+    if (analysis.category === 'golden_sushi') {
+      plateStyle = 'border: 3px solid #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);';
+      glowEffect = 'golden-glow';
+    } else if (analysis.category === 'quality_choice') {
+      plateStyle = 'border: 2px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);';
+      glowEffect = 'green-glow';
+    } else if (analysis.wasteRisk > 0.6) {
+      plateStyle = 'border: 2px solid #ff4141; box-shadow: 0 0 15px rgba(255, 65, 65, 0.4);';
+      glowEffect = 'warning-glow';
+    }
+    
+    plate.innerHTML = `
+      <div class="sushi-piece" style="${plateStyle}">
+        <div class="sushi-emoji">${sushiEmoji}</div>
+        <div class="sushi-label-top">${reco.roleTitle}</div>
+        <div class="sushi-label-bottom">${reco.company}</div>
+        <div class="strategic-indicators ${glowEffect}">
+          <div class="competition-indicator">Competition: ${Math.round(analysis.competitionLevel * 100)}%</div>
+          <div class="time-indicator">Time: ${analysis.timeToValue}d</div>
+          <div class="strategic-value">Strategic: ${(analysis.strategicValue * 100).toFixed(0)}%</div>
+        </div>
+      </div>
+    `;
+    
+    // Store analysis for later use
+    plate._analysis = analysis;
+    
+    return plate;
+  }
+  
+  function addSushiToBelt(reco) {
+    if (conveyorBelt.isProcessing) {
+      conveyorBelt.queue.push(reco);
+      return;
+    }
+    
+    conveyorBelt.isProcessing = true;
+    const beltContainer = $('#conveyor-belt');
+    const plate = createSushiPlate(reco, currentRecos.findIndex(r => r.id === reco.id));
+    
+    beltContainer.appendChild(plate);
+    conveyorBelt.currentPlate = plate;
+    conveyorBelt.activeJob = reco;
+    
+    // Update job info panel immediately
+    updateJobInfoPanel(reco);
+    
+    // Start the movement sequence (timing based on belt speed)
+    const decisionPhaseDelay = Math.floor(conveyorBelt.beltSpeed * 0.4);
+    setTimeout(() => {
+      startDecisionPhase(plate, reco);
+    }, decisionPhaseDelay);
+    
+    // Auto-miss if no action taken
+    setTimeout(() => {
+      if (conveyorBelt.currentPlate === plate && !plate.classList.contains('accepted') && !plate.classList.contains('rejected')) {
+        missOpportunity(plate, reco);
+      }
+    }, conveyorBelt.beltSpeed);
+  }
+  
+  function startDecisionPhase(plate, reco) {
+    if (!plate || plate.classList.contains('accepted') || plate.classList.contains('rejected')) return;
+    
+    plate.classList.add('in-decision-zone');
+    
+    // Track decision timing for knife skills
+    conveyorBelt.decisionStartTime = Date.now();
+    
+    // Start countdown timer
+    const timeIndicator = $('#time-indicator');
+    timeIndicator.classList.add('countdown');
+    
+    // Enable interaction
+    plate.style.pointerEvents = 'auto';
+    
+    // Set up click handlers for mobile
+    plate.addEventListener('click', () => {
+      if (!plate.classList.contains('accepted') && !plate.classList.contains('rejected')) {
+        acceptSushi(plate, reco);
+      }
+    });
+    
+    // Show chef recommendation
+    const analysis = plate._analysis;
+    if (analysis) {
+      showChefAdvice(analysis, reco);
+    }
+    
+    // Decision window timeout (dynamic based on strategy)
+    conveyorBelt.decisionTimer = setTimeout(() => {
+      if (conveyorBelt.currentPlate === plate) {
+        endDecisionPhase();
+      }
+    }, conveyorBelt.decisionWindow);
+  }
+  
+  function endDecisionPhase() {
+    const timeIndicator = $('#time-indicator');
+    timeIndicator.classList.remove('countdown');
+    
+    if (conveyorBelt.currentPlate) {
+      conveyorBelt.currentPlate.classList.remove('in-decision-zone');
+    }
+  }
+  
+  function acceptSushi(plate, reco) {
+    if (!plate || plate.classList.contains('accepted') || plate.classList.contains('rejected')) return;
+    
+    clearTimeout(conveyorBelt.decisionTimer);
+    endDecisionPhase();
+    
+    plate.classList.add('accepted');
+    
+    // Record knife skills for precision and timing
+    const timeSpent = conveyorBelt.decisionWindow - (conveyorBelt.decisionTimer ? 
+      conveyorBelt.decisionWindow - (Date.now() - conveyorBelt.decisionStartTime) : 0);
+    recordApplicationTechnique(reco, 'accept', timeSpent, true); // Assume customized for accepts
+    
+    // Add to job list
+    addRecoToJobs(reco);
+    
+    // Strategic feedback based on decision quality
+    const analysis = plate._analysis;
+    let feedbackMessage = '';
+    let feedbackType = 'success';
+    
+    if (analysis.category === 'golden_sushi') {
+      feedbackMessage = `🌟 EXCELLENT CHOICE! ${reco.company} - Perfect strategic fit!\nLow competition, high fit, great timing!`;
+      chefStrategy.todaysApplications++;
+    } else if (analysis.category === 'quality_choice') {
+      feedbackMessage = `✅ SMART GRAB! ${reco.company} - Strong strategic value!\nFit: ${analysis.fitScore.toFixed(1)} | Competition: ${(analysis.competitionLevel * 100).toFixed(0)}%`;
+      chefStrategy.todaysApplications++;
+    } else if (analysis.wasteRisk > 0.6) {
+      feedbackMessage = `⚠️ RISKY CHOICE! ${reco.company} may waste time...\n${analysis.chefRecommendation}`;
+      feedbackType = 'warning';
+      chefStrategy.todaysApplications++;
+    } else {
+      feedbackMessage = `✅ Applied to ${reco.company}\nStrategic Value: ${(analysis.strategicValue * 100).toFixed(0)}%`;
+      chefStrategy.todaysApplications++;
+    }
+    
+    showToast(feedbackMessage, feedbackType);
+    
+    // Analytics with strategic data
+    const insights = generateWhyInsights(reco, true);
+    swipeAnalytics.accepted.push({ 
+      ...reco, 
+      insights, 
+      strategicAnalysis: analysis,
+      timestamp: Date.now() 
+    });
+    updateGameStats(true, reco.expectedFit);
+    
+    // Clean up after animation
+    setTimeout(() => {
+      plate.remove();
+      processNextSushi();
+    }, 800);
+    
+    // Trigger achievements
+    checkAchievements();
+  }
+  
+  function rejectSushi(plate, reco) {
+    if (!plate || plate.classList.contains('accepted') || plate.classList.contains('rejected')) return;
+    
+    clearTimeout(conveyorBelt.decisionTimer);
+    endDecisionPhase();
+    
+    plate.classList.add('rejected');
+    
+    // Record knife skills for decision speed
+    const timeSpent = conveyorBelt.decisionWindow - (conveyorBelt.decisionTimer ? 
+      conveyorBelt.decisionWindow - (Date.now() - conveyorBelt.decisionStartTime) : 0);
+    recordApplicationTechnique(reco, 'reject', timeSpent, false);
+    
+    // Show rejection feedback
+    const concerns = generateWhyInsights(reco, false);
+    showToast(`❌ Passed on ${reco.company}\n${concerns.join('\n')}`, 'error');
+    
+    // Analytics
+    swipeAnalytics.rejected.push({ ...reco, concerns, timestamp: Date.now() });
+    updateGameStats(false, reco.expectedFit);
+    
+    // Clean up after animation
+    setTimeout(() => {
+      plate.remove();
+      processNextSushi();
+    }, 600);
+  }
+  
+  function missOpportunity(plate, reco) {
+    if (!plate || plate.classList.contains('accepted') || plate.classList.contains('rejected')) return;
+    
+    clearTimeout(conveyorBelt.decisionTimer);
+    endDecisionPhase();
+    
+    plate.classList.add('missed');
+    
+    // Update missed count
+    conveyorBelt.missedCount++;
+    const pileCount = $('#pile-count');
+    const missedPile = $('#missed-pile');
+    
+    pileCount.textContent = conveyorBelt.missedCount;
+    missedPile.classList.add('updated');
+    
+    setTimeout(() => {
+      missedPile.classList.remove('updated');
+    }, 300);
+    
+    // Show missed feedback
+    showToast(`⏰ Missed opportunity at ${reco.company} - Window closed!`, 'warning');
+    
+    // Analytics (as neither accept nor reject)
+    swipeAnalytics.missed = swipeAnalytics.missed || [];
+    swipeAnalytics.missed.push({ ...reco, timestamp: Date.now() });
+    
+    // Clean up after animation
+    setTimeout(() => {
+      plate.remove();
+      processNextSushi();
+    }, 1000);
+  }
+  
+  function processNextSushi() {
+    conveyorBelt.isProcessing = false;
+    conveyorBelt.currentPlate = null;
+    conveyorBelt.activeJob = null;
+    
+    // Process queued items
+    if (conveyorBelt.queue.length > 0) {
+      const nextReco = conveyorBelt.queue.shift();
+      setTimeout(() => {
+        addSushiToBelt(nextReco);
+      }, 1500); // Delay between sushi
+    } else {
+      // Load next job
+      setTimeout(() => {
+        nextSushi();
+      }, 2000);
+    }
+  }
+  
+  function updateJobInfoPanel(reco) {
+    // Update Atari-style job info panel
+    $('#card-company').textContent = reco.company.toUpperCase();
+    $('#card-role').textContent = reco.roleTitle.toUpperCase();
+    $('#salary-value').textContent = reco.salary || '$--';
     $('#fit-score-value').textContent = reco.expectedFit.toFixed(1);
-    $('#sector-value').textContent = reco.sector;
-    $('#location-value').textContent = reco.location || 'Remote';
+    $('#sector-value').textContent = reco.sector.toUpperCase();
+    $('#location-value').textContent = (reco.location || 'REMOTE').toUpperCase();
     
     // Update fit score styling
-    const fitBox = $('#fit-score-box');
-    fitBox.className = `main-stat fit-stat ${fitClass(reco.expectedFit)}`;
+    const fitScoreEl = $('#fit-score-value');
+    fitScoreEl.className = `stat-value fit-score ${fitClass(reco.expectedFit)}`;
     
-    // Generate a random vibe for visual appeal
+    // Generate a random vibe
     const vibes = ['😍', '🤩', '😎', '😄', '😊', '🥳', '🥰', '😉'];
     const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
     $('#vibe-value').textContent = randomVibe;
     
     // Update tags
-    const tagsEl = $('#card-tags');
-    tagsEl.innerHTML = reco.tags.slice(0, 4).map(tag => 
-      `<div class="retro-tag">${tag}</div>`
+    const tagsContainer = $('#card-tags');
+    tagsContainer.innerHTML = reco.tags.slice(0, 4).map(tag => 
+      `<div class="retro-tag">${tag.toUpperCase()}</div>`
     ).join('');
+  }
+  
+  function updateGameStats(isAccept, fitScore) {
+    gameStats.totalSwiped++;
+    
+    if (isAccept) {
+      gameStats.acceptedStreak++;
+      gameStats.rejectedInRow = 0;
+      gameStats.maxStreak = Math.max(gameStats.maxStreak, gameStats.acceptedStreak);
+      
+      if (fitScore >= 9.0) {
+        gameStats.perfectMatches++;
+      }
+    } else {
+      gameStats.acceptedStreak = 0;
+      gameStats.rejectedInRow++;
+    }
+    
+    gameStats.lastAction = isAccept ? 'accept' : 'reject';
   }
   
   function nextSushi() {
     if (currentRecos.length === 0) return;
     currentIndex = (currentIndex + 1) % currentRecos.length;
-    displayCurrentSushi();
+    const nextReco = currentRecos[currentIndex];
+    addSushiToBelt(nextReco);
   }
   
   // Belt control functions
@@ -1815,63 +2765,14 @@
 
 
   function swipeRight() {
-    if (!currentRecos[currentIndex]) return;
-    
-    const reco = currentRecos[currentIndex];
-    const insights = generateWhyInsights(reco, true);
-    
-    // Add to job list
-    addRecoToJobs(reco);
-    
-    // Show why insights
-    showToast(`✅ Grabbed ${getSushiForRole(reco.roleTitle)} ${reco.company}!\n${insights.join('\n')}`, 'success');
-    
-    // Track analytics
-    swipeAnalytics.accepted.push({ ...reco, insights, timestamp: Date.now() });
-    
-    // Animate sushi grab
-    const sushiPiece = document.querySelector('.sushi-piece');
-    if (sushiPiece) {
-      sushiPiece.style.transform = 'scale(1.3) rotateY(360deg)';
-      sushiPiece.style.opacity = '0.7';
-      setTimeout(() => {
-        nextSushi();
-        if (sushiPiece) {
-          sushiPiece.style.transform = '';
-          sushiPiece.style.opacity = '1';
-        }
-      }, 800);
-    } else {
-      nextSushi();
+    if (conveyorBelt.currentPlate && conveyorBelt.activeJob) {
+      acceptSushi(conveyorBelt.currentPlate, conveyorBelt.activeJob);
     }
   }
 
   function swipeLeft() {
-    if (!currentRecos[currentIndex]) return;
-    
-    const reco = currentRecos[currentIndex];
-    const concerns = generateWhyInsights(reco, false);
-    
-    // Show why not insights
-    showToast(`❌ Passed on ${reco.company}\n${concerns.join('\n')}`, 'error');
-    
-    // Track analytics
-    swipeAnalytics.rejected.push({ ...reco, concerns, timestamp: Date.now() });
-    
-    // Animate sushi rejection
-    const sushiPiece = document.querySelector('.sushi-piece');
-    if (sushiPiece) {
-      sushiPiece.style.transform = 'translateX(-200px) rotate(-15deg) scale(0.8)';
-      sushiPiece.style.opacity = '0.3';
-      setTimeout(() => {
-        nextSushi();
-        if (sushiPiece) {
-          sushiPiece.style.transform = '';
-          sushiPiece.style.opacity = '1';
-        }
-      }, 600);
-    } else {
-      nextSushi();
+    if (conveyorBelt.currentPlate && conveyorBelt.activeJob) {
+      rejectSushi(conveyorBelt.currentPlate, conveyorBelt.activeJob);
     }
   }
 
@@ -1928,12 +2829,12 @@
 
     const recos = window.DiscoveryCore.generateRecommendations(jobs, insights, Date.now() % 97);
     
-    // Set up recommendations for sushi display
+    // Set up recommendations for conveyor belt
     currentRecos = recos;
     currentIndex = 0;
     
-    if (recos.length > 0) {
-      displayCurrentSushi();
+    if (recos.length > 0 && !conveyorBelt.isProcessing) {
+      addSushiToBelt(recos[0]);
     }
     
     // Hidden legacy table for compatibility
@@ -1988,11 +2889,35 @@
       }
     });
     
+    // Initialize Chef Strategy System
+    calculateChefStrategy();
+    
+    // Initialize Mise en Place and Knife Skills systems
+    checkDailyPreparation();
+    updatePreparationDisplay();
+    updateKnifeSkillsDisplay();
+    
     render();
     
     // PWA and Mobile Features initialization
     registerServiceWorker();
     addMobileTouchControls();
     setupInstallPrompt();
+    
+    // Action button handlers
+    const acceptBtn = document.getElementById('accept-btn');
+    const rejectBtn = document.getElementById('reject-btn');
+    
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', swipeRight);
+    }
+    
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', swipeLeft);
+    }
+    
+    // Make Mise en Place functions globally available
+    window.completePreparationItem = completePreparationItem;
+    window.checkDailyPreparation = checkDailyPreparation;
   });
 })();
