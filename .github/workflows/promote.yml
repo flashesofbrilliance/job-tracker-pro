@@ -89,8 +89,26 @@ jobs:
           rm -rf "env/$TENV/latest/*"
           rm -rf env/$TENV/latest
           cp -R "$DEST" "env/$TENV/latest"
-          git add "$DEST" "env/$TENV/latest"
-          git -c user.name=github-actions -c user.email=github-actions@github.com commit -m "promote: $SRC -> $DEST and update $TENV/latest" || true
+          # Update manifest and index
+          node -e '
+            const fs=require("fs"),path=require("path");
+            const env=process.env.TENV; const dest=process.env.DEST; const name=path.basename(dest);
+            const entry={ env, name, path: dest, commit: process.env.GITHUB_SHA, created_at: new Date().toISOString(), source: process.env.GITHUB_REF, type: "promote" };
+            const root="env"; if(!fs.existsSync(root)) fs.mkdirSync(root);
+            const mf=path.join(root,"manifest.json");
+            let data={ envs:{ dev:[], qa:[], stage:[], prod:[], preview:[] }, updated_at: new Date().toISOString() };
+            if(fs.existsSync(mf)) { try { data=JSON.parse(fs.readFileSync(mf,"utf8")); } catch(e){} }
+            if(!data.envs) data.envs={}; if(!data.envs[env]) data.envs[env]=[];
+            data.envs[env]=data.envs[env].filter(e=>e.path!==dest);
+            data.envs[env].unshift(entry);
+            data.envs[env]=data.envs[env].slice(0,100);
+            data.updated_at=new Date().toISOString();
+            fs.writeFileSync(mf, JSON.stringify(data,null,2));
+            const html=['<!doctype html>','<meta charset="utf-8">','<title>Build Catalog</title>','<h1>Build Catalog</h1>',...Object.entries(data.envs).map(([k,arr])=>`<h2>${k}</h2><ul>`+arr.map(i=>`<li><a href="/${i.path}/">${i.name}</a> <small>${i.created_at} (${i.commit?.slice(0,7)||''})</small></li>`).join('')+"</ul>")].join('\n');
+            fs.writeFileSync(path.join('.', 'index.html'), html);
+          '
+          git add "$DEST" "env/$TENV/latest" env/manifest.json index.html
+          git -c user.name=github-actions -c user.email=github-actions@github.com commit -m "promote: $SRC -> $DEST and update $TENV/latest & manifest" || true
           git push origin gh-pages
           echo "dest=$DEST" >> $GITHUB_OUTPUT
       - name: Comment result

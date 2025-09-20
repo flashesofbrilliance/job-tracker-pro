@@ -1,0 +1,75 @@
+name: Rollback Latest (env)
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment to roll back"
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - stage
+          - prod
+      target_path:
+        description: "Optional exact path to restore (e.g., env/qa/main-<sha>). If empty, uses previous entry from manifest."
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare gh-pages checkout
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}.git"
+          git fetch origin gh-pages:gh-pages || true
+          if git rev-parse --verify gh-pages >/dev/null 2>&1; then
+            git checkout gh-pages
+          else
+            echo "gh-pages branch not found" >&2
+            exit 1
+          fi
+      - name: Determine target and update latest
+        env:
+          TENV: ${{ inputs.env }}
+          TARGET_PATH: ${{ inputs.target_path }}
+        run: |
+          set -euo pipefail
+          cd repo
+          # Determine target path
+          node -e '
+            const fs=require("fs"), path=require("path");
+            const env=process.env.TENV;
+            const explicit=process.env.TARGET_PATH||"";
+            const mf=path.join("env","manifest.json");
+            if(!fs.existsSync(mf)) { console.error("No manifest.json found"); process.exit(1); }
+            const data=JSON.parse(fs.readFileSync(mf,"utf8"));
+            const list=(data.envs&&data.envs[env])||[];
+            let target=explicit.trim();
+            if(!target){
+              // choose the previous entry (index 1), fallback to index 0
+              if(list.length<2){ console.error("Not enough entries to roll back"); process.exit(1); }
+              target=list[1].path;
+            }
+            if(!fs.existsSync(target)) { console.error("Target path not found:",target); process.exit(1); }
+            fs.writeFileSync(".rollback_target", target);
+          '
+          TARGET=$(cat .rollback_target)
+          echo "Rolling back $TENV/latest to $TARGET"
+          rm -rf "env/$TENV/latest"
+          cp -R "$TARGET" "env/$TENV/latest"
+          git add "env/$TENV/latest"
+          git -c user.name=github-actions -c user.email=github-actions@github.com commit -m "rollback: $TENV/latest -> $TARGET" || true
+          git push origin gh-pages
+          echo "url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/$TARGET/" >> $GITHUB_OUTPUT
+      - name: Output result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.notice(`Rolled back to ${process.env.URL || 'target'}`)
