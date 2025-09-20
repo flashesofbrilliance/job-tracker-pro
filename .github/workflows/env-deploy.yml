@@ -9,6 +9,7 @@ on:
       - 'release/**'
   tags:
     - 'v*'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -23,8 +24,19 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
+      - name: Debug environment
+        run: |
+          node -v
+          npm -v
+          git --version
+          echo "Runner: $RUNNER_OS"
+          echo "Ref: $GITHUB_REF"
+          echo "SHA: ${GITHUB_SHA}"
+          ls -la
+      - name: Install dependencies (ci with fallback)
+        run: |
+          set -e
+          (npm ci) || (echo "npm ci failed, falling back to npm install" && npm install)
       - name: Build
         run: npm run build
       - name: Determine environment and path
