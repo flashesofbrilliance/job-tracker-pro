@@ -25,6 +25,370 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.20.0/cannon.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+  
+  <style>
+  /* Mise en Place System Styles */
+  .mise-en-place-card {
+    background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.1));
+    border: 1px solid rgba(139, 69, 19, 0.3);
+  }
+  
+  .prep-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .prep-title {
+    font-weight: bold;
+    font-size: 16px;
+    color: #8b4513;
+  }
+  
+  .prep-score {
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .prep-score.excellent {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+  }
+  
+  .prep-score.good {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+  }
+  
+  .prep-score.needs-work {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff6b6b;
+  }
+  
+  .prep-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .prep-item {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+    transition: all 0.3s ease;
+  }
+  
+  .prep-item.completed {
+    background: rgba(0, 255, 0, 0.1);
+    border-color: rgba(0, 255, 0, 0.3);
+    color: #00ff00;
+  }
+  
+  .prep-icon {
+    margin-right: 6px;
+  }
+  
+  .prep-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 10px;
+  }
+  
+  .prep-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  
+  .prep-btn {
+    background: rgba(139, 69, 19, 0.3);
+    border: 1px solid rgba(139, 69, 19, 0.5);
+    color: #d4af37;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .prep-btn:hover {
+    background: rgba(139, 69, 19, 0.5);
+    transform: translateY(-1px);
+  }
+  
+  /* Knife Skills System Styles */
+  .knife-skills-card {
+    background: linear-gradient(135deg, rgba(47, 79, 79, 0.1), rgba(70, 130, 180, 0.1));
+    border: 1px solid rgba(47, 79, 79, 0.3);
+  }
+  
+  .skills-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .skills-title {
+    font-weight: bold;
+    font-size: 16px;
+    color: #2f4f4f;
+  }
+  
+  .skill-level {
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .skill-level.novice {
+    background: rgba(128, 128, 128, 0.2);
+    color: #888;
+  }
+  
+  .skill-level.apprentice {
+    background: rgba(0, 191, 255, 0.2);
+    color: #00bfff;
+  }
+  
+  .skill-level.chef {
+    background: rgba(255, 140, 0, 0.2);
+    color: #ff8c00;
+  }
+  
+  .skill-level.master {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+  }
+  
+  .skills-metrics {
+    margin-bottom: 15px;
+  }
+  
+  .skill-metric {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  
+  .metric-name {
+    width: 70px;
+    color: #ccc;
+  }
+  
+  .metric-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    margin: 0 8px;
+    overflow: hidden;
+  }
+  
+  .metric-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00bfff, #1e90ff);
+    transition: width 0.5s ease;
+    border-radius: 4px;
+  }
+  
+  .metric-value {
+    width: 40px;
+    text-align: right;
+    color: #00bfff;
+    font-weight: bold;
+  }
+  
+  .mastery-badges {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+  }
+  
+  .mastery-badge {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    font-size: 12px;
+  }
+  
+  .mastery-badge.sniper {
+    background: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.3);
+  }
+  
+  .mastery-badge.lightning {
+    background: rgba(255, 255, 0, 0.2);
+    border-color: rgba(255, 255, 0, 0.3);
+  }
+  
+  .mastery-badge.artisan {
+    background: rgba(138, 43, 226, 0.2);
+    border-color: rgba(138, 43, 226, 0.3);
+  }
+  
+  /* Chef Advice Messages */
+  .chef-quick-advice {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 300px;
+    opacity: 0;
+  }
+  
+  .chef-bubble {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .chef-emoji {
+    font-size: 18px;
+  }
+  
+  /* Skill Level Up Animation */
+  .skill-level-up {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    opacity: 0;
+  }
+  
+  .level-up-content {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 140, 0, 0.95));
+    color: #000;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 3px solid #ffd700;
+  }
+  
+  .level-up-header {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+  }
+  
+  .level-progression {
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .old-level {
+    opacity: 0.6;
+  }
+  
+  .new-level {
+    font-weight: bold;
+    color: #ff6b00;
+  }
+  
+  .arrow {
+    font-size: 24px;
+  }
+  
+  .level-description {
+    font-size: 14px;
+    opacity: 0.8;
+    font-style: italic;
+  }
+  
+  /* Mastery Unlock Animation */
+  .mastery-unlock {
+    position: fixed;
+    top: 30%;
+    right: 20px;
+    z-index: 1500;
+    opacity: 0;
+  }
+  
+  .mastery-content {
+    background: linear-gradient(135deg, rgba(75, 0, 130, 0.95), rgba(138, 43, 226, 0.95));
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    border: 2px solid #8a2be2;
+  }
+  
+  .mastery-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+  
+  .mastery-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  
+  .mastery-desc {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+  
+  @media (max-width: 768px) {
+    .prep-controls {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .prep-items {
+      grid-template-columns: 1fr;
+    }
+    
+    .chef-quick-advice {
+      right: 10px;
+      top: 10px;
+      max-width: 250px;
+    }
+    
+    .level-up-content {
+      padding: 20px;
+      margin: 20px;
+    }
+    
+    .mastery-unlock {
+      right: 10px;
+    }
+  }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -56,14 +420,19 @@
               <!-- Moving Conveyor Belt -->
               <div class="conveyor-track">
                 <div class="conveyor-belt" id="conveyor-belt">
-                  <!-- Sushi plates will move along this belt -->
-                  <div class="sushi-plate active" id="sushi-stage">
-                    <div class="sushi-piece">
-                      <div class="sushi-emoji">🍣</div>
-                      <div class="sushi-label-top">Loading...</div>
-                      <div class="sushi-label-bottom">Preparing omakase...</div>
-                    </div>
-                  </div>
+                  <!-- Sushi plates will be dynamically added here -->
+                </div>
+                
+                <!-- Decision Zone Indicator -->
+                <div class="decision-zone">
+                  <div class="decision-zone-label">DECISION ZONE</div>
+                  <div class="time-indicator" id="time-indicator"></div>
+                </div>
+                
+                <!-- Missed Opportunities Pile -->
+                <div class="missed-pile" id="missed-pile">
+                  <div class="pile-label">MISSED</div>
+                  <div class="pile-count" id="pile-count">0</div>
                 </div>
               </div>
               
@@ -175,6 +544,22 @@
           <div class="analytics-card">
             <h4>Belt Analytics</h4>
             <div id="belt-analytics"></div>
+          </div>
+          <div class="analytics-card mise-en-place-card">
+            <h4>Daily Preparation</h4>
+            <div id="preparation-status"></div>
+            <div class="prep-controls">
+              <button onclick="completePreparationItem('profile')" class="prep-btn">📝 Profile</button>
+              <button onclick="completePreparationItem('research')" class="prep-btn">🔍 Research</button>
+              <button onclick="completePreparationItem('network')" class="prep-btn">🤝 Network</button>
+              <button onclick="completePreparationItem('skills')" class="prep-btn">⚡ Skills</button>
+              <button onclick="completePreparationItem('intel')" class="prep-btn">📊 Intel</button>
+              <button onclick="completePreparationItem('tools')" class="prep-btn">🔧 Tools</button>
+            </div>
+          </div>
+          <div class="analytics-card knife-skills-card">
+            <h4>Application Mastery</h4>
+            <div id="knife-skills-status"></div>
           </div>
         </div>
       </div>
