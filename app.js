@@ -191,6 +191,7 @@ let sortConfig = { key: null, direction: 'asc' };
 let charts = {};
 let draggedElement = null;
 let currentEditingJob = null;
+let discoveryState = { recommendations: [], lastSeed: 0 };
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -410,6 +411,21 @@ function setupActivityModal() {
   if (activityDate) {
     activityDate.value = new Date().toISOString().split('T')[0];
   }
+
+  // Show reason selector only for Rejection
+  const typeSel = document.getElementById('activity-type');
+  const reasonGroup = document.getElementById('activity-reason-group');
+  if (typeSel && reasonGroup) {
+    const toggleReason = () => {
+      if (typeSel.value === 'Rejection') {
+        reasonGroup.classList.remove('hidden');
+      } else {
+        reasonGroup.classList.add('hidden');
+      }
+    };
+    typeSel.addEventListener('change', toggleReason);
+    toggleReason();
+  }
 }
 
 function setupResetModal() {
@@ -495,7 +511,225 @@ function renderCurrentView() {
     case 'analytics':
       renderAnalyticsView();
       break;
+    case 'discover':
+      renderDiscoverView();
+      break;
   }
+}
+
+// Discover View
+function renderDiscoverView() {
+  // Build insights and recos each time (lightweight)
+  const insights = analyzeLearningSignals(jobsData);
+  const insightsEl = document.getElementById('discover-insights');
+  if (insightsEl) {
+    insightsEl.innerHTML = `
+      <div class="segment-stats">
+        ${insights.topSegments.map(s => `
+          <div class="segment-stat">
+            <span class="segment-name">${s.name} (${s.count})</span>
+            <span class="segment-score">${s.score.toFixed(2)}</span>
+          </div>
+        `).join('') || '<div class="empty">No signals yet. Start adding activities.</div>'}
+      </div>
+      <div style="margin-top:12px;">
+        <h4 style="margin:0 0 8px 0;">Common Rejection Reasons</h4>
+        <div class="segment-stats">
+          ${insights.rejectionReasons.map(r => `
+            <div class="segment-stat">
+              <span class="segment-name">${r.reason}</span>
+              <span class="segment-score">${r.count}</span>
+            </div>
+          `).join('') || '<div class="empty">No rejections logged yet.</div>'}
+        </div>
+      </div>
+    `;
+  }
+
+  // Recommendations
+  if (!discoveryState.recommendations.length) {
+    discoveryState.recommendations = generateRecommendations(jobsData, insights);
+  }
+  const listEl = document.getElementById('discover-list');
+  if (listEl) {
+    if (discoveryState.recommendations.length === 0) {
+      listEl.innerHTML = '<div class="empty" style="padding:12px;">No recommendations yet. Try refreshing.</div>';
+    } else {
+      const rows = discoveryState.recommendations.map((rec, idx) => `
+        <div class="table-row" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--border-color, #e5e7eb);padding:10px 6px;">
+          <div><strong>${rec.company}</strong></div>
+          <div>${rec.roleTitle}</div>
+          <div><span class="fit-score-value ${getFitScoreClass(rec.expectedFit)}">${rec.expectedFit.toFixed(1)}</span></div>
+          <div>${rec.sector}</div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn--sm btn--primary" data-add-idx="${idx}"><i class="fas fa-plus"></i> Add</button>
+          </div>
+        </div>
+      `).join('');
+      listEl.innerHTML = `
+        <div class="table" role="table">
+          <div role="row" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;font-weight:600;padding:8px 6px;opacity:0.8;">
+            <div>Company</div><div>Role</div><div>Expected Fit</div><div>Sector</div><div></div>
+          </div>
+          ${rows}
+        </div>
+      `;
+      // Bind add buttons
+      listEl.querySelectorAll('[data-add-idx]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.currentTarget.getAttribute('data-add-idx'));
+          addDiscoveredRole(idx);
+        });
+      });
+    }
+  }
+
+  // Refresh button
+  const refreshBtn = document.getElementById('refresh-recos-btn');
+  if (refreshBtn) {
+    refreshBtn.onclick = () => {
+      discoveryState.lastSeed++;
+      discoveryState.recommendations = generateRecommendations(jobsData, insights, discoveryState.lastSeed);
+      renderDiscoverView();
+    };
+  }
+}
+
+function analyzeLearningSignals(jobs) {
+  // Map vibe to numeric
+  const vibeScore = v => (v === '😊' ? 0.1 : v === '😟' ? -0.1 : 0);
+  const sectorOf = job => job.tags.find(t => ['Crypto','DeFi','AI','FinTech','Payments','Infrastructure','Exchange','L1','Oracle'].includes(t)) || 'Other';
+
+  // Success score per job
+  const statusScore = s => s === 'offer' ? 1.0 : s === 'interviewing' ? 0.6 : s === 'applied' ? 0.2 : s === 'rejected' ? -0.5 : 0.0;
+
+  const segMap = {};
+  const rejectionCounts = {};
+  jobs.forEach(job => {
+    const seg = sectorOf(job);
+    if (!segMap[seg]) segMap[seg] = { count: 0, score: 0 };
+    segMap[seg].count++;
+    segMap[seg].score += statusScore(job.status) + vibeScore(job.vibe) + (job.fitScore - 7.5) * 0.05; // center ~7.5
+
+    // Parse rejection activities
+    (job.activityLog || []).forEach(act => {
+      if ((act.type || '').toLowerCase() === 'rejection') {
+        const cat = (act.reason && typeof act.reason === 'string' && act.reason.trim())
+          ? act.reason.trim()
+          : categorizeRejectionReason(act.note || '');
+        rejectionCounts[cat] = (rejectionCounts[cat] || 0) + 1;
+      }
+    });
+  });
+
+  const topSegments = Object.entries(segMap)
+    .map(([name, v]) => ({ name, count: v.count, score: v.score / Math.max(1, v.count) }))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 4);
+
+  const rejectionReasons = Object.entries(rejectionCounts)
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a,b) => b.count - a.count)
+    .slice(0, 6);
+
+  return { topSegments, rejectionReasons };
+}
+
+function categorizeRejectionReason(text) {
+  const t = text.toLowerCase();
+  if (/comp|salary|pay|band|budget/.test(t)) return 'Compensation';
+  if (/senior|overqualified|junior|level|seniority/.test(t)) return 'Seniority/Level';
+  if (/location|relocat|onsite|hybrid|visa|work auth/.test(t)) return 'Location/Visa';
+  if (/timing|freeze|headcount|hiring|hold/.test(t)) return 'Timing/Headcount';
+  if (/domain|industry|crypto|web3|ai|fintech|payments/.test(t)) return 'Domain Fit';
+  if (/skills|experience|background|requirement|stack/.test(t)) return 'Skills/Experience';
+  return 'Other';
+}
+
+function generateRecommendations(jobs, insights, seed = 0) {
+  const existingKeys = new Set(jobs.map(j => `${j.company}::${j.roleTitle}`));
+  const topSectors = insights.topSegments.length ? insights.topSegments.map(s => s.name) : ['Crypto','AI','FinTech','Infrastructure'];
+  const catalog = getDiscoveryCatalog();
+
+  // Score candidates by sector match + not in existing + slight randomness by seed
+  const rand = (i) => ((Math.sin(i + seed * 1337) + 1) / 2); // deterministic but varied
+  const recos = catalog
+    .filter(c => !existingKeys.has(`${c.company}::${c.role}`))
+    .map((c, i) => {
+      const secBonus = topSectors.includes(c.sector) ? 0.5 : 0.0;
+      const baseFit = 7.8 + (c.baseFitAdj || 0);
+      const expectedFit = Math.max(6.5, Math.min(9.9, baseFit + secBonus + rand(i) * 0.6 - 0.3));
+      return {
+        id: `${c.company.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${c.role.toLowerCase().replace(/[^a-z0-9]/g,'-')}`,
+        company: c.company,
+        roleTitle: c.role,
+        sector: c.sector,
+        expectedFit,
+        tags: [c.sector, ...(c.tags || [])].slice(0,5),
+        salary: c.salary || '$200k - $300k + equity',
+        location: c.location || 'Remote (Global)'
+      };
+    })
+    .sort((a,b) => b.expectedFit - a.expectedFit)
+    .slice(0, 12);
+  return recos;
+}
+
+function getDiscoveryCatalog() {
+  // Lightweight, static catalog — extend as needed
+  return [
+    { company: 'Ledger', sector: 'Infrastructure', role: 'Director Product - Enterprise Wallets', tags: ['Crypto','Security'], baseFitAdj: 0.2 },
+    { company: 'Fireblocks', sector: 'Infrastructure', role: 'VP Product - Institutional', tags: ['Crypto','Institutional'], baseFitAdj: 0.3 },
+    { company: 'MoonPay', sector: 'Payments', role: 'Head of Product - On/Off Ramp', tags: ['FinTech','Payments'], baseFitAdj: 0.1 },
+    { company: 'Plaid', sector: 'FinTech', role: 'Director Product - Identity & Risk', tags: ['Risk','Compliance'], baseFitAdj: 0.1 },
+    { company: 'Ripple', sector: 'Crypto', role: 'Director Product - Liquidity Hub', tags: ['Crypto','Enterprise'], baseFitAdj: 0.1 },
+    { company: 'Worldcoin', sector: 'AI', role: 'Director Product - Trust & Safety', tags: ['AI','Identity'], baseFitAdj: 0.0 },
+    { company: 'Chime', sector: 'FinTech', role: 'VP Product - Platform', tags: ['Banking','Platform'], baseFitAdj: -0.1 },
+    { company: 'Wise', sector: 'Payments', role: 'Head of Product - Enterprise', tags: ['FX','Compliance'], baseFitAdj: 0.0 },
+    { company: 'Airtm', sector: 'FinTech', role: 'Director Product - Cross-Border', tags: ['Payments'], baseFitAdj: 0.0 },
+    { company: 'OpenAI', sector: 'AI', role: 'Head of Product - Safety Systems', tags: ['AI','Safety'], baseFitAdj: 0.2 },
+    { company: 'Anthropic', sector: 'AI', role: 'Director Product - Enterprise', tags: ['AI','Platform'], baseFitAdj: 0.1 },
+    { company: 'Ramp', sector: 'FinTech', role: 'Director Product - Risk', tags: ['FinTech','Risk'], baseFitAdj: 0.0 },
+    { company: 'Checkout.com', sector: 'Payments', role: 'Director Product - Crypto', tags: ['Payments','Crypto'], baseFitAdj: 0.1 },
+    { company: 'StarkWare', sector: 'L1', role: 'Head of Product - Developer Experience', tags: ['L1','DevTools'], baseFitAdj: 0.0 },
+    { company: 'EigenLayer', sector: 'Infrastructure', role: 'Director Product - Protocol', tags: ['Crypto','Protocol'], baseFitAdj: 0.0 },
+  ];
+}
+
+function addDiscoveredRole(idx) {
+  const rec = discoveryState.recommendations[idx];
+  if (!rec) return;
+  const newJob = {
+    id: `${rec.id}-${Date.now()}`,
+    company: rec.company,
+    roleTitle: rec.roleTitle,
+    location: rec.location,
+    status: 'not-started',
+    vibe: '😐',
+    fitScore: parseFloat(rec.expectedFit.toFixed(1)),
+    salary: rec.salary,
+    tags: ['Remote', ...rec.tags].slice(0,5),
+    appliedDate: null,
+    notes: `${rec.company} (${rec.sector}) suggested by discovery engine`,
+    research: {
+      companyIntel: `${rec.company} operates in ${rec.sector}.`,
+      keyPeople: ["CEO","CTO","Head of Product"],
+      recentNews: "",
+      competitiveAdvantage: "",
+      challenges: ""
+    },
+    iceBreakers: [],
+    objections: [],
+    fitAnalysis: 'Suggested based on learning signals',
+    activityLog: [],
+    dateAdded: new Date().toISOString().split('T')[0]
+  };
+
+  jobsData.unshift(newJob);
+  saveDataToStorage();
+  applyAllFilters();
+  renderDashboard();
+  showToast(`Added ${rec.company} — ${rec.roleTitle}`, 'success');
 }
 
 // Table View
@@ -704,6 +938,14 @@ function handleDrop(e, newStatus) {
     if (newStatus === 'applied' && !job.appliedDate) {
       job.appliedDate = new Date().toISOString().split('T')[0];
     }
+
+    // Quick rejection reason capture
+    if (newStatus === 'rejected') {
+      const reason = promptRejectionReason();
+      if (reason) {
+        addRejectionActivity(job, reason, 'Captured on status change');
+      }
+    }
     
     // Save to localStorage
     saveDataToStorage();
@@ -714,6 +956,36 @@ function handleDrop(e, newStatus) {
     
     showToast(`${job.company} moved to ${formatStatus(newStatus)}`, 'success');
   }
+}
+
+function promptRejectionReason() {
+  const options = [
+    'Compensation',
+    'Seniority/Level',
+    'Location/Visa',
+    'Timing/Headcount',
+    'Domain Fit',
+    'Skills/Experience',
+    'Other'
+  ];
+  const input = window.prompt(
+    'Rejection reason?\n1) Compensation\n2) Seniority/Level\n3) Location/Visa\n4) Timing/Headcount\n5) Domain Fit\n6) Skills/Experience\n7) Other\n\nEnter number or type a custom reason (Esc to skip).'
+  );
+  if (!input) return '';
+  const n = parseInt(input.trim(), 10);
+  if (!isNaN(n) && n >= 1 && n <= options.length) return options[n - 1];
+  return input.trim();
+}
+
+function addRejectionActivity(job, reason, notes = '') {
+  job.activityLog.push({
+    date: new Date().toISOString().split('T')[0],
+    type: 'Rejection',
+    note: notes,
+    reason
+  });
+  // Keep activity log sorted newest first
+  job.activityLog.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
 // Job Details and Editing - FIXED MODAL FUNCTIONALITY
@@ -884,7 +1156,7 @@ function createJobEditForm(job) {
               <div class="activity-date">${formatDate(activity.date)}</div>
               <div class="activity-content">
                 <div class="activity-type">${activity.type}</div>
-                <div class="activity-note">${activity.note}</div>
+                <div class="activity-note">${activity.note}${(activity.type === 'Rejection' && activity.reason) ? ` <em>(Reason: ${activity.reason})</em>` : ''}</div>
               </div>
               <div class="activity-actions">
                 <button class="activity-delete-btn" onclick="removeActivity(${index})">
@@ -909,6 +1181,7 @@ function saveJobChanges() {
   const jobIndex = jobsData.findIndex(j => j.id === currentEditingJob.id);
   if (jobIndex === -1) return;
   
+  const prevStatus = jobsData[jobIndex].status;
   // Collect form data
   const updatedJob = {
     ...jobsData[jobIndex],
@@ -947,6 +1220,14 @@ function saveJobChanges() {
   
   // Update the job in the array
   jobsData[jobIndex] = updatedJob;
+
+  // If status was changed to rejected, capture reason quickly
+  if (prevStatus !== 'rejected' && updatedJob.status === 'rejected') {
+    const reason = promptRejectionReason();
+    if (reason) {
+      addRejectionActivity(jobsData[jobIndex], reason, 'Captured on save');
+    }
+  }
   
   // Save to localStorage
   saveDataToStorage();
@@ -1103,6 +1384,10 @@ function showAddActivityModal() {
     // Reset form
     document.getElementById('activity-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('activity-type').value = 'Research';
+    const reasonGroup = document.getElementById('activity-reason-group');
+    const reasonSel = document.getElementById('activity-reason');
+    if (reasonGroup) reasonGroup.classList.add('hidden');
+    if (reasonSel) reasonSel.value = '';
     document.getElementById('activity-notes').value = '';
   }
 }
@@ -1113,6 +1398,7 @@ function saveActivity() {
   const type = document.getElementById('activity-type')?.value;
   const date = document.getElementById('activity-date')?.value;
   const notes = document.getElementById('activity-notes')?.value;
+  const reason = document.getElementById('activity-reason')?.value || '';
   
   if (!type || !date) {
     showToast('Please fill in all required fields', 'error');
@@ -1122,11 +1408,13 @@ function saveActivity() {
   // Find the job and add the activity
   const job = jobsData.find(j => j.id === currentEditingJob.id);
   if (job) {
-    job.activityLog.push({
+    const entry = {
       date,
       type,
       note: notes || ''
-    });
+    };
+    if (type === 'Rejection' && reason) entry.reason = reason;
+    job.activityLog.push(entry);
     
     // Sort activity log by date (newest first)
     job.activityLog.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1274,6 +1562,10 @@ function handleBulkEdit() {
   const newStatus = prompt('Enter new status for selected jobs:\n- not-started\n- research\n- applied\n- interviewing\n- offer\n- rejected');
   
   if (newStatus && ['not-started', 'research', 'applied', 'interviewing', 'offer', 'rejected'].includes(newStatus)) {
+    let bulkReason = '';
+    if (newStatus === 'rejected') {
+      bulkReason = promptRejectionReason();
+    }
     selectedJobs.forEach(jobId => {
       const job = jobsData.find(j => j.id === jobId);
       if (job) {
@@ -1283,6 +1575,9 @@ function handleBulkEdit() {
           type: 'Bulk Update',
           note: `Status changed to ${formatStatus(newStatus)} via bulk action`
         });
+        if (newStatus === 'rejected' && bulkReason) {
+          addRejectionActivity(job, bulkReason, 'Captured via bulk edit');
+        }
       }
     });
     
@@ -1300,6 +1595,8 @@ function handleBulkArchive() {
   if (selectedJobs.size === 0) return;
   
   if (confirm(`Archive ${selectedJobs.size} selected jobs?`)) {
+    // Ask once for a rejection reason to apply to all
+    const bulkReason = promptRejectionReason();
     selectedJobs.forEach(jobId => {
       const job = jobsData.find(j => j.id === jobId);
       if (job) {
@@ -1309,6 +1606,9 @@ function handleBulkArchive() {
           type: 'Archived',
           note: 'Job archived via bulk action'
         });
+        if (bulkReason) {
+          addRejectionActivity(job, bulkReason, 'Captured via bulk archive');
+        }
       }
     });
     
@@ -1658,3 +1958,4 @@ window.removeObjection = removeObjection;
 window.addObjection = addObjection;
 window.showAddActivityModal = showAddActivityModal;
 window.removeActivity = removeActivity;
+window.addDiscoveredRole = addDiscoveredRole;
