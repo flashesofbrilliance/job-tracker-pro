@@ -1784,6 +1784,34 @@
     currentIndex = (currentIndex + 1) % currentRecos.length;
     displayCurrentSushi();
   }
+  
+  // Belt control functions
+  let beltPaused = false;
+  let beltSpeed = 'normal';
+  let focusedPlate = 0;
+  
+  function toggleBeltPause() {
+    beltPaused = !beltPaused;
+    console.log(`Belt ${beltPaused ? 'paused' : 'resumed'}`);
+    // Could add visual indicators here
+  }
+  
+  function changeBeltSpeed() {
+    const speeds = ['slow', 'normal', 'fast'];
+    const currentSpeedIndex = speeds.indexOf(beltSpeed);
+    beltSpeed = speeds[(currentSpeedIndex + 1) % speeds.length];
+    console.log(`Belt speed changed to: ${beltSpeed}`);
+    // Could add visual indicators here
+  }
+  
+  function updateFocusedPlate() {
+    console.log(`Focused plate: ${focusedPlate}`);
+    // Could add visual focus indicators here
+    if (focusedPlate !== currentIndex) {
+      currentIndex = focusedPlate;
+      displayCurrentSushi();
+    }
+  }
 
 
   function swipeRight() {
@@ -1893,8 +1921,13 @@
 
     const recos = window.DiscoveryCore.generateRecommendations(jobs, insights, Date.now() % 97);
     
-    // Populate sushi belt
-    populateSushiBelt(recos);
+    // Set up recommendations for sushi display
+    currentRecos = recos;
+    currentIndex = 0;
+    
+    if (recos.length > 0) {
+      displayCurrentSushi();
+    }
     
     // Hidden legacy table for compatibility
     const recosEl = $('#recos');
