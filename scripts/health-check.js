@@ -6,6 +6,7 @@
  */
 
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
@@ -35,7 +36,9 @@ class HealthChecker {
 
   async httpGet(url) {
     return new Promise((resolve, reject) => {
-      const request = https.get(url, { timeout: TIMEOUT }, (response) => {
+      // Support both HTTP and HTTPS
+      const client = url.startsWith('https:') ? https : http;
+      const request = client.get(url, { timeout: TIMEOUT }, (response) => {
         let data = '';
         response.on('data', chunk => data += chunk);
         response.on('end', () => {
@@ -69,10 +72,10 @@ class HealthChecker {
   }
 
   async checkPageLoad() {
-    this.log(`Checking page load: ${this.baseUrl}/`);
+    this.log(`Checking page load: ${this.baseUrl}`);
     
     try {
-      const response = await this.retryRequest(this.baseUrl + '/');
+      const response = await this.retryRequest(this.baseUrl);
       
       if (response.statusCode !== 200) {
         throw new Error(`HTTP ${response.statusCode}`);
@@ -85,9 +88,9 @@ class HealthChecker {
         { name: 'Has DOCTYPE', test: () => html.includes('<!DOCTYPE') || html.includes('<!doctype') },
         { name: 'Has title tag', test: () => html.includes('<title>') },
         { name: 'Has body tag', test: () => html.includes('<body') },
-        { name: 'Contains Job Tracker', test: () => html.toLowerCase().includes('job tracker') },
+        { name: 'Contains App Title', test: () => html.toLowerCase().includes('job tracker') || html.toLowerCase().includes('discovery engine') },
         { name: 'Has main CSS', test: () => html.includes('style.css') },
-        { name: 'Has main JS', test: () => html.includes('app.js') },
+        { name: 'Has JS', test: () => html.includes('app.js') || html.includes('discovery.js') },
         { name: 'No obvious errors', test: () => !html.toLowerCase().includes('error') && !html.toLowerCase().includes('404') }
       ];
 
@@ -124,10 +127,14 @@ class HealthChecker {
     ];
 
     let allPassed = true;
+    
+    // Extract root URL from baseUrl if it points to a specific file
+    const rootUrl = this.baseUrl.includes('.html') ? 
+      this.baseUrl.substring(0, this.baseUrl.lastIndexOf('/')) : this.baseUrl;
 
     for (const asset of assets) {
       try {
-        const response = await this.retryRequest(this.baseUrl + asset);
+        const response = await this.retryRequest(rootUrl + asset);
         
         if (response.statusCode === 200) {
           this.log(`✓ Asset available: ${asset}`, 'info');
@@ -150,7 +157,7 @@ class HealthChecker {
     const performanceStart = Date.now();
     
     try {
-      await this.retryRequest(this.baseUrl + '/');
+      await this.retryRequest(this.baseUrl);
       const loadTime = Date.now() - performanceStart;
       
       const thresholds = {
@@ -178,12 +185,12 @@ class HealthChecker {
   }
 
   async checkBuildCatalog() {
-    // Only check build catalog for the main site
-    if (!this.baseUrl.includes('/env/')) {
+    // Only check build catalog for the main site, not discovery or preview pages
+    if (!this.baseUrl.includes('/env/') && !this.baseUrl.includes('discovery')) {
       this.log('Checking build catalog...');
       
       try {
-        const response = await this.retryRequest(this.baseUrl + '/');
+        const response = await this.retryRequest(this.baseUrl);
         
         if (response.statusCode === 200 && 
             response.body.toLowerCase().includes('build catalog')) {
@@ -197,6 +204,9 @@ class HealthChecker {
         this.log(`Build catalog check failed: ${error.message}`, 'error');
         return false;
       }
+    } else {
+      this.log('Skipping build catalog check for discovery/preview page', 'info');
+      return true;
     }
     return true; // Skip for environment-specific URLs
   }
