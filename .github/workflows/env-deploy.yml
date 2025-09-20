@@ -67,39 +67,68 @@ jobs:
             for(const f of files){ const b=fs.readFileSync(f); const h=crypto.createHash("sha256").update(b).digest("hex"); hashes[f.replace(/^dist\//,"")]=h; }
             const out={ commit: process.env.GITHUB_SHA, generated_at: new Date().toISOString(), files: hashes };
             fs.writeFileSync("dist/_provenance.json", JSON.stringify(out,null,2));'
-      - name: Deploy to gh-pages env path (git push)
+      - name: Publish artifact, update latest, and manifest (gh-pages)
         if: steps.env.outputs.skip != 'true'
+        env:
+          ENV: ${{ steps.env.outputs.env }}
+          NAME: ${{ steps.env.outputs.name }}
+          DEST: ${{ steps.env.outputs.path }}
         run: |
           set -euo pipefail
+          mkdir -p repo
+          cd repo
+          git init
           git config user.name github-actions
           git config user.email github-actions@github.com
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}.git"
           git fetch origin gh-pages:gh-pages || true
-          if ! git rev-parse --verify gh-pages >/dev/null 2>&1; then
+          if git rev-parse --verify gh-pages >/dev/null 2>&1; then
+            git checkout gh-pages
+          else
             git checkout --orphan gh-pages
             rm -rf ./* .[^.]* || true
-            echo '<!doctype html><title>Build Catalog</title><p>gh-pages initialized' > index.html
+            echo '<!doctype html><title>Build Catalog</title><p>Initialized gh-pages' > index.html
             git add index.html
             git commit -m "chore: init gh-pages"
-          else
-            git checkout gh-pages
           fi
-          DEST="${{ steps.env.outputs.path }}"
+          # Copy artifact to destination path
+          mkdir -p "$(dirname "$DEST")"
+          rm -rf "$DEST"
           mkdir -p "$DEST"
-          rm -rf "$DEST"/* || true
-          cp -R dist/* "$DEST"/
-          git add "$DEST"
-          git commit -m "deploy: $DEST from $GITHUB_REF@${GITHUB_SHA::7}" || true
+          cp -R ../dist/* "$DEST"/
+          # Update latest pointer
+          rm -rf "env/$ENV/latest"
+          mkdir -p "env/$ENV"
+          cp -R "$DEST" "env/$ENV/latest"
+          # Update manifest (env/manifest.json)
+          node -e '
+            const fs=require("fs");
+            const path=require("path");
+            const env=process.env.ENV, name=process.env.NAME, dest=process.env.DEST;
+            const entry={ env, name, path: dest, commit: process.env.GITHUB_SHA, created_at: new Date().toISOString(), source: process.env.GITHUB_REF, type: "build" };
+            const root="env"; if(!fs.existsSync(root)) fs.mkdirSync(root);
+            const mf=path.join(root,"manifest.json");
+            let data={ envs:{ dev:[], qa:[], stage:[], prod:[], preview:[] }, updated_at: new Date().toISOString() };
+            if(fs.existsSync(mf)) { try { data=JSON.parse(fs.readFileSync(mf,"utf8")); } catch(e){} }
+            if(!data.envs) data.envs={};
+            if(!data.envs[env]) data.envs[env]=[];
+            // de-dup same path
+            data.envs[env]=data.envs[env].filter(e=>e.path!==dest);
+            data.envs[env].unshift(entry);
+            // keep last 100 entries per env
+            data.envs[env]=data.envs[env].slice(0,100);
+            data.updated_at=new Date().toISOString();
+            fs.writeFileSync(mf, JSON.stringify(data,null,2));
+            // Simple index.html
+            const html=[
+              '<!doctype html>','<meta charset="utf-8">','<title>Build Catalog</title>',
+              '<h1>Build Catalog</h1>',
+              ...Object.entries(data.envs).map(([k,arr])=>`<h2>${k}</h2><ul>`+arr.map(i=>`<li><a href="/${i.path}/">${i.name}</a> <small>${i.created_at} (${i.commit?.slice(0,7)||''})</small></li>`).join('')+"</ul>")
+            ].join('\n');
+            fs.writeFileSync(path.join('.', 'index.html'), html);
+          '
+          # Commit and push
+          git add "$DEST" "env/$ENV/latest" env/manifest.json index.html
+          git commit -m "deploy: $DEST and update $ENV/latest (ref $GITHUB_REF @ ${GITHUB_SHA::7})" || true
           git push origin gh-pages
-      - name: Update env latest pointer
-        if: steps.env.outputs.skip != 'true'
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git fetch origin gh-pages:gh-pages
-          git checkout gh-pages
-          mkdir -p env/${{ steps.env.outputs.env }}/latest
-          rm -rf env/${{ steps.env.outputs.env }}/latest/*
-          cp -R env/${{ steps.env.outputs.env }}/${{ steps.env.outputs.name }}/* env/${{ steps.env.outputs.env }}/latest/
-          git add env/${{ steps.env.outputs.env }}/latest
-          git commit -m "chore: update latest for ${{ steps.env.outputs.env }} -> ${{ steps.env.outputs.name }}" || true
-          git push origin gh-pages
+          cd -
