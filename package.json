@@ -8,9 +8,11 @@
     "dev": "live-server --port=3000 --open=/index.html",
     "serve": "http-server . -p 8080 -o",
     "lint": "echo 'lint ok'",
-    "build": "rm -rf dist && mkdir -p dist && cp index.html dist/ && cp style.css dist/ || true && cp app.js dist/ || true",
+    "build": "rm -rf dist && mkdir -p dist && cp index.html dist/ && cp style.css dist/ || true && cp app.js dist/ || true && cp discovery.html dist/ || true && cp discovery-core.js dist/ || true && cp discovery.js dist/ || true",
     "preview:pr": "bash scripts/preview-pr.sh",
     "preview:open": "bash scripts/open-preview.sh",
+    "health:check": "node scripts/health-check.js",
+    "test:rollback": "bash scripts/test-rollback.sh",
     "bootstrap:ci": "bash scripts/bootstrap-ci.sh",
     "setup:pipeline": "bash scripts/setup-pipeline.sh"
   },
