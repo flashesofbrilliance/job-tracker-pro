@@ -1,0 +1,103 @@
+name: Promote Artifact (env -> env)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_path:
+        description: "Source path on gh-pages (e.g., env/qa/latest or env/qa/main-<sha>)"
+        required: true
+      target_env:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - stage
+          - prod
+      target_name:
+        description: "Optional target build name (default = from source name or timestamp)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}.git"
+          git fetch origin gh-pages:gh-pages
+          git checkout gh-pages
+      - name: Validate blockers (open issues)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = ['blocker','ac-fail'];
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: labels.join(',')
+            });
+            if (issues.length > 0) {
+              core.setFailed(`Open blocking issues present: ${issues.map(i=>`#${i.number}`).join(', ')}`);
+            }
+      - name: Verify provenance & copy
+        id: promote
+        run: |
+          set -euo pipefail
+          cd repo
+          SRC="${{ inputs.source_path }}"
+          TENV="${{ inputs.target_env }}"
+          TNAME="${{ inputs.target_name || '' }}"
+          if [ ! -d "$SRC" ]; then echo "Source path $SRC not found"; exit 1; fi
+          if [ ! -f "$SRC/_provenance.json" ]; then echo "No provenance at $SRC/_provenance.json"; exit 1; fi
+          if [ -z "$TNAME" ]; then
+            # derive from source folder name or timestamp
+            base=$(basename "$SRC")
+            if [ "$base" = "latest" ]; then base="promote-$(date +%Y%m%d%H%M%S)"; fi
+            TNAME="$base"
+          fi
+          DEST="env/$TENV/$TNAME"
+          mkdir -p "$(dirname "$DEST")"
+          rm -rf "$DEST"
+          cp -R "$SRC" "$DEST"
+          # verify file hashes match provenance
+          node -e '
+            const fs=require("fs"),crypto=require("crypto");
+            const dest=process.env.DEST;
+            const prov=JSON.parse(fs.readFileSync(dest+"/_provenance.json","utf8"));
+            const mismatches=[];
+            for(const [rel,hash] of Object.entries(prov.files||{})){
+              const p=`${dest}/${rel}`;
+              if(!fs.existsSync(p)){ mismatches.push(`${rel} missing`); continue; }
+              const b=fs.readFileSync(p);
+              const h=crypto.createHash("sha256").update(b).digest("hex");
+              if(h!==hash) mismatches.push(`${rel} hash ${h} != ${hash}`);
+            }
+            if(mismatches.length){
+              console.error('Provenance mismatches:', mismatches.join('\n'));
+              process.exit(1);
+            }
+          '
+          mkdir -p "env/$TENV/latest"
+          rm -rf "env/$TENV/latest/*"
+          rm -rf env/$TENV/latest
+          cp -R "$DEST" "env/$TENV/latest"
+          git add "$DEST" "env/$TENV/latest"
+          git -c user.name=github-actions -c user.email=github-actions@github.com commit -m "promote: $SRC -> $DEST and update $TENV/latest" || true
+          git push origin gh-pages
+          echo "dest=$DEST" >> $GITHUB_OUTPUT
+      - name: Comment result
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const dest = core.getInput('dest') || '${{ steps.promote.outputs.dest }}';
+            const base = `https://${context.repo.owner}.github.io/${context.repo.repo}/${dest}/`;
+            core.notice(`Promoted to ${base}`);

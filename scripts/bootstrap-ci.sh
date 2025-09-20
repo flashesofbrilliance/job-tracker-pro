@@ -9,9 +9,7 @@ if [[ -z "$REMOTE" ]]; then echo "No git remote found. Add one before bootstrapp
 OWNER_REPO="$(echo "$REMOTE" | sed -E 's#.*github.com[/:]##; s#\.git$##')"
 OWNER="${OWNER_REPO%/*}"; REPO="${OWNER_REPO#*/}"
 
-for E in dev qa stage prod; do gh api -X PUT "repos/$OWNER/$REPO/environments/$E" -f wait_timer=0 >/dev/null || true; done
-( gh api -X POST "repos/$OWNER/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null ) || \
-( gh api -X PUT  "repos/$OWNER/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null )
+for E in dev qa stage prod; do gh api -X PUT "repos/$OWNER/$REPO/environments/$E" -F wait_timer=0 >/dev/null || true; done
 
 if ! git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
   TMPDIR="$(mktemp -d)"; pushd "$TMPDIR" >/dev/null
@@ -25,7 +23,14 @@ if ! git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
   popd >/dev/null; rm -rf "$TMPDIR"
 fi
 
-gh workflow run validate-settings.yml -f code_owner=@flashesofbrilliance || true
-gh workflow run pin-actions.yml || true
+# Configure GitHub Pages (after ensuring gh-pages exists)
+( gh api -X POST "repos/$OWNER/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null ) || \
+( gh api -X PUT  "repos/$OWNER/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null )
+if [[ -f .github/workflows/validate-settings.yml ]]; then
+  gh workflow run validate-settings.yml -f code_owner=@flashesofbrilliance || true
+fi
+if [[ -f .github/workflows/pin-actions.yml ]]; then
+  gh workflow run pin-actions.yml || true
+fi
 echo "Pages: https://$OWNER.github.io/$REPO/"
 

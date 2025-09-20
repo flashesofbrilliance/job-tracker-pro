@@ -1,0 +1,79 @@
+name: Env Deploy (dev/qa/stage/prod)
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+      - 'qa/**'
+      - 'release/**'
+  tags:
+    - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Determine environment and path
+        id: env
+        run: |
+          REF="${GITHUB_REF}"
+          SHA="${GITHUB_SHA:0:7}"
+          ENV=""
+          NAME=""
+          if [[ "$GITHUB_REF" == refs/heads/feat/* ]]; then ENV=dev; NAME=${GITHUB_REF#refs/heads/}; fi
+          if [[ "$GITHUB_REF" == refs/heads/qa/* ]]; then ENV=qa; NAME=${GITHUB_REF#refs/heads/}; fi
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then ENV=stage; NAME=${GITHUB_REF#refs/heads/}; fi
+          if [[ "$GITHUB_REF" == refs/heads/main ]]; then ENV=qa; NAME=main-${SHA}; fi
+          if [[ "$GITHUB_REF" == refs/tags/v*-rc* ]]; then ENV=stage; NAME=${GITHUB_REF#refs/tags/}; fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then ENV=prod; NAME=${GITHUB_REF#refs/tags/}; fi
+          if [[ -z "$ENV" ]]; then echo "ENV not determined; skipping"; echo "skip=true" >> $GITHUB_OUTPUT; exit 0; fi
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "path=env/$ENV/$NAME" >> $GITHUB_OUTPUT
+      - name: Generate provenance
+        if: steps.env.outputs.skip != 'true'
+        run: |
+          node -e '
+            const fs=require("fs"),crypto=require("crypto");
+            function walk(dir, list=[]) { for (const f of fs.readdirSync(dir)) { const p=dir+"/"+f; const s=fs.statSync(p); if (s.isDirectory()) walk(p,list); else list.push(p);} return list; }
+            const files=walk("dist");
+            const hashes={};
+            for(const f of files){ const b=fs.readFileSync(f); const h=crypto.createHash("sha256").update(b).digest("hex"); hashes[f.replace(/^dist\//,"")]=h; }
+            const out={ commit: process.env.GITHUB_SHA, generated_at: new Date().toISOString(), files: hashes };
+            fs.writeFileSync("dist/_provenance.json", JSON.stringify(out,null,2));'
+      - name: Deploy to gh-pages env path
+        if: steps.env.outputs.skip != 'true'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
+          publish_branch: gh-pages
+          destination_dir: ${{ steps.env.outputs.path }}
+          enable_jekyll: false
+      - name: Update env latest pointer
+        if: steps.env.outputs.skip != 'true'
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git fetch origin gh-pages:gh-pages
+          git checkout gh-pages
+          mkdir -p env/${{ steps.env.outputs.env }}/latest
+          rm -rf env/${{ steps.env.outputs.env }}/latest/*
+          cp -R env/${{ steps.env.outputs.env }}/${{ steps.env.outputs.name }}/* env/${{ steps.env.outputs.env }}/latest/
+          git add env/${{ steps.env.outputs.env }}/latest
+          git commit -m "chore: update latest for ${{ steps.env.outputs.env }} -> ${{ steps.env.outputs.name }}" || true
+          git push origin gh-pages
