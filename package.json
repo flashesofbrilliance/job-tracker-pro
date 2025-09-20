@@ -10,7 +10,7 @@
     "lint": "echo 'lint ok'",
     "build": "rm -rf dist && mkdir -p dist && cp index.html dist/ && cp style.css dist/ || true && cp app.js dist/ || true && cp discovery.html dist/ || true && cp discovery-core.js dist/ || true && cp discovery.js dist/ || true",
     "build:game": "rm -rf dist && mkdir -p dist && cp index.html dist/ && cp style.css dist/ || true && cp app.js dist/ || true && cp discovery-core.js dist/ || true && cp game.html dist/ || true && cp game-core.js dist/ || true && cp game.js dist/ || true",
-    "build:discovery": "rm -rf dist-discovery && mkdir -p dist-discovery && cp discovery.html dist-discovery/ && cp style.css dist-discovery/ || true && cp discovery-core.js dist-discovery/ || true && cp discovery.js dist-discovery/ || true && cp manifest.json dist-discovery/ || true && cp sw.js dist-discovery/ || true && cp performance-manager.js dist-discovery/ || true && cp metrics-framework.js dist-discovery/ || true",
+    "build:discovery": "rm -rf dist-discovery && mkdir -p dist-discovery && cp discovery.html dist-discovery/ && cp style.css dist-discovery/ || true && cp discovery-core.js dist-discovery/ || true && cp discovery.js dist-discovery/ || true && cp manifest.json dist-discovery/ || true && cp sw.js dist-discovery/ || true && cp performance-manager.js dist-discovery/ || true && cp metrics-framework.js dist-discovery/ || true && cp woodblock-patterns.js dist-discovery/ || true && cp sushi-scene-manager.js dist-discovery/ || true && cp webgl-resource-handler.js dist-discovery/ || true && cp gpu-optimization-manager.js dist-discovery/ || true",
     "preview:pr": "bash scripts/preview-pr.sh",
     "preview:discovery": "bash scripts/preview-discovery.sh",
     "preview:open": "bash scripts/open-preview.sh",
