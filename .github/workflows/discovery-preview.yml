@@ -3,6 +3,12 @@ name: Discovery Preview Deploy (PR)
 on:
   pull_request:
     branches:
+      - main
+    paths:
+      - 'discovery*'
+      - '.github/workflows/discovery-preview.yml'
+  push:
+    branches:
       - discovery/**
   workflow_dispatch:
     inputs:
@@ -10,6 +16,7 @@ on:
         description: 'PR number to simulate'
         required: true
         default: '1'
+        type: string
 
 permissions:
   contents: write
@@ -33,9 +40,9 @@ jobs:
           (npm ci) || npm install
       - name: Build Discovery
         run: npm run build:discovery
-      - name: Publish PR discovery preview and update manifest (gh-pages)
+      - name: Publish discovery preview and update manifest (gh-pages)
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number || 'main' }}
         run: |
           set -euo pipefail
           set +H
@@ -87,6 +94,7 @@ EOF
           git push origin gh-pages
           cd -
       - name: Comment discovery preview URL
+        if: github.event.pull_request.number
         uses: actions/github-script@v7
         with:
           script: |

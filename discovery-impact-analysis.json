@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-09-20T01:50:00.783Z",
+  "commit_info": {
+    "sha": "df17842a18c7973d0c265266e45a79570b6ecdfb",
+    "short_sha": "df17842",
+    "branch": "discovery/main",
+    "author": "Zach Harris",
+    "author_email": "zharris@MacBook-Pro-8.local",
+    "message": "feat: establish comprehensive environment strategy with validation and change tracking",
+    "date": "2025-09-19 21:45:35 -0400",
+    "remote_url": "https://github.com/flashesofbrilliance/job-tracker-pro.git"
+  },
+  "file_changes": {
+    "previous_commit": "main",
+    "total_files_changed": 0,
+    "total_lines_added": 0,
+    "total_lines_removed": 0,
+    "net_change": 0,
+    "files": {},
+    "categories": {
+      "source_code": [],
+      "tests": [],
+      "documentation": [],
+      "configuration": [],
+      "assets": [],
+      "workflows": [],
+      "other": []
+    }
+  },
+  "performance_impact": {
+    "impact_level": "low",
+    "impact_areas": [],
+    "requires_performance_testing": false,
+    "changed_files_by_category": {
+      "source_code": [],
+      "assets": [],
+      "configuration": []
+    }
+  },
+  "security_impact": {
+    "security_sensitive_files": [],
+    "has_security_keywords": false,
+    "requires_security_review": false,
+    "risk_level": "low"
+  },
+  "rollback_info": {
+    "current_commit": "df17842a18c7973d0c265266e45a79570b6ecdfb",
+    "rollback_target": "main",
+    "rollback_commands": [
+      "git checkout main",
+      "npm run build",
+      "npm run health:check",
+      "# Verify rollback: git log --oneline -5"
+    ],
+    "rollback_steps": [
+      "Stop current deployment/traffic",
+      "Execute rollback commands",
+      "Verify application functionality",
+      "Run health checks",
+      "Monitor for issues",
+      "Update monitoring/alerting",
+      "Notify stakeholders of rollback"
+    ],
+    "validation_required": true,
+    "estimated_rollback_time": "10-15 minutes"
+  },
+  "manifest_version": "1.0.0",
+  "generated_at": "2025-09-20T01:50:01.006Z",
+  "checksum": "afc9d3c7012289164a3bdecb3b42974232dcabf83b0d3b19e7786665f3d8fbde"
+}

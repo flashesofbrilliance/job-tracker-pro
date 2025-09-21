@@ -137,15 +137,6 @@
   --duration-normal: 250ms;
   --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Traditional Japanese Patterns */
-  --pattern-sakura: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23a78357' stroke-width='0.3' opacity='0.15'%3E%3Cg transform='translate(30,30)'%3E%3Cpath d='M0-8 Q2-6 0-4 Q-2-6 0-8' transform='rotate(0)'/%3E%3Cpath d='M0-8 Q2-6 0-4 Q-2-6 0-8' transform='rotate(72)'/%3E%3Cpath d='M0-8 Q2-6 0-4 Q-2-6 0-8' transform='rotate(144)'/%3E%3Cpath d='M0-8 Q2-6 0-4 Q-2-6 0-8' transform='rotate(216)'/%3E%3Cpath d='M0-8 Q2-6 0-4 Q-2-6 0-8' transform='rotate(288)'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%23a78357' opacity='0.1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  
-  --pattern-asanoha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%2321808d' stroke-width='0.4' opacity='0.08'%3E%3Cpath d='M24 0L36 12L24 24L12 12Z'/%3E%3Cpath d='M0 24L12 36L24 24L12 12Z'/%3E%3Cpath d='M24 24L36 36L48 24L36 12Z'/%3E%3Cpath d='M24 24L36 36L24 48L12 36Z'/%3E%3Cpath d='M24 24L12 36L0 24L12 12Z'/%3E%3Cpath d='M24 24L12 12L24 0L36 12Z'/%3E%3C/g%3E%3C/svg%3E");
-  
-  --pattern-seigaiha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%2321808d' stroke-width='0.5' opacity='0.06'%3E%3Cpath d='M0 20C0 11.163 7.163 4 16 4s16 7.163 16 16'/%3E%3Cpath d='M-8 20C-8 11.163 -0.837 4 8 4s16 7.163 16 16'/%3E%3Cpath d='M8 20C8 11.163 15.163 4 24 4s16 7.163 16 16'/%3E%3C/g%3E%3C/svg%3E");
-  
-  --pattern-shippo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%23a78357' stroke-width='0.3' opacity='0.1'%3E%3Ccircle cx='16' cy='16' r='12'/%3E%3Ccircle cx='0' cy='16' r='12'/%3E%3Ccircle cx='32' cy='16' r='12'/%3E%3Ccircle cx='16' cy='0' r='12'/%3E%3Ccircle cx='16' cy='32' r='12'/%3E%3C/g%3E%3C/svg%3E");
-
   /* Layout */
   --container-sm: 640px;
   --container-md: 768px;
@@ -2093,405 +2084,162 @@ select.form-control {
   50% { transform: translateY(-5px) rotateY(2deg); }
 }
 
-/* Japanese Minimalist Job Card with Traditional Patterns */
+/* 80s Baseball Card */
 .job-card {
   background: 
-    var(--pattern-sakura),
-    var(--pattern-asanoha),
-    linear-gradient(135deg, var(--color-surface) 0%, rgba(252, 252, 249, 0.95) 100%),
-    radial-gradient(circle at 20% 80%, rgba(33, 128, 141, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(168, 75, 47, 0.03) 0%, transparent 50%);
-  background-size: 60px 60px, 48px 48px, 100% 100%, 100% 100%, 100% 100%;
-  background-position: 0 0, 30px 30px, 0 0, 0 0, 0 0;
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  margin: 24px auto;
-  max-width: 420px;
+    linear-gradient(145deg, #1e3c72 0%, #2a5298 100%),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 1px,
+      rgba(255, 255, 255, 0.05) 1px,
+      rgba(255, 255, 255, 0.05) 2px
+    );
+  border: 3px solid #00ffff;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 350px;
   box-shadow: 
-    var(--shadow-sm),
-    0 1px 3px rgba(33, 128, 141, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  color: var(--color-text);
-  font-family: var(--font-family-base);
+    0 0 30px rgba(0, 255, 255, 0.4),
+    0 8px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(12px);
-  transition: all var(--duration-normal) var(--ease-standard);
 }
 
-/* Organic brush stroke accent */
 .job-card::before {
   content: '';
   position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  height: 2px;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
   background: linear-gradient(
-    90deg, 
-    transparent 0%, 
-    rgba(33, 128, 141, 0.3) 20%, 
-    rgba(33, 128, 141, 0.6) 50%, 
-    rgba(33, 128, 141, 0.3) 80%, 
-    transparent 100%
+    45deg,
+    #ff006e,
+    #8338ec,
+    #3a86ff,
+    #06ffa5,
+    #ffbe0b,
+    #fb8500
   );
-  border-radius: 2px;
-  opacity: 0.7;
-  animation: brush-stroke 4s ease-in-out infinite;
-  transform-origin: left center;
+  border-radius: 15px;
+  z-index: -1;
+  animation: rainbow-border 3s linear infinite;
 }
 
-.job-card::after {
-  content: '';
-  position: absolute;
-  bottom: 8px;
-  left: 12px;
-  width: 60px;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgba(168, 75, 47, 0.4) 0%,
-    rgba(168, 75, 47, 0.8) 30%,
-    rgba(168, 75, 47, 0.4) 100%
-  );
-  border-radius: 1px;
-  opacity: 0.6;
-  transform: rotate(-1deg);
-  animation: brush-accent 6s ease-in-out infinite;
-}
-
-@keyframes brush-stroke {
-  0%, 100% { 
-    transform: scaleX(1) translateX(0);
-    opacity: 0.7;
-  }
-  50% { 
-    transform: scaleX(0.95) translateX(2px);
-    opacity: 0.5;
-  }
-}
-
-@keyframes brush-accent {
-  0%, 100% { 
-    transform: rotate(-1deg) scaleX(1);
-    opacity: 0.6;
-  }
-  50% { 
-    transform: rotate(-0.5deg) scaleX(1.1);
-    opacity: 0.4;
-  }
+@keyframes rainbow-border {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
 }
 
 .card-header {
-  text-align: left;
-  margin-bottom: 28px;
-  padding-bottom: 0;
-  border-bottom: none;
-  position: relative;
+  text-align: center;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #00ffff;
+  padding-bottom: 10px;
 }
 
 .company-name {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  margin: 0 0 8px 0;
-  letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);
-  position: relative;
-}
-
-.company-name::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 32px;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgba(33, 128, 141, 0.8) 0%,
-    rgba(33, 128, 141, 0.3) 100%
-  );
-  border-radius: 1px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow: 
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 15px #00ffff;
+  margin: 0;
+  letter-spacing: 2px;
 }
 
 .role-title {
-  font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
-  margin: 0;
-  font-weight: var(--font-weight-normal);
-  letter-spacing: -0.005em;
-  line-height: var(--line-height-normal);
+  font-size: 16px;
+  color: #ffffff;
+  margin: 5px 0 0 0;
+  font-weight: normal;
 }
 
-/* Elegant Salary Display with Wave Pattern */
+/* Sushi Price Display */
 .sushi-price {
-  text-align: left;
-  margin: 24px 0;
-  padding: 20px;
-  background: 
-    var(--pattern-seigaiha),
-    linear-gradient(
-      135deg,
-      rgba(33, 128, 141, 0.04) 0%,
-      rgba(33, 128, 141, 0.02) 100%
-    );
-  background-size: 40px 20px, 100% 100%;
-  background-position: 0 bottom, 0 0;
-  border: 1px solid rgba(33, 128, 141, 0.12);
-  border-radius: var(--radius-base);
-  position: relative;
-  transition: all var(--duration-normal) var(--ease-standard);
+  text-align: center;
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid #00ff00;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
 }
 
 .price-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: 12px;
+  color: #a0a0a0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-  font-weight: var(--font-weight-medium);
+  letter-spacing: 2px;
+  margin-bottom: 5px;
 }
 
 .price-value {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
-  font-family: var(--font-family-base);
-  line-height: var(--line-height-tight);
-  letter-spacing: var(--letter-spacing-tight);
+  font-size: 28px;
+  font-weight: bold;
+  color: #00ff00;
+  text-shadow: 
+    0 0 5px #00ff00,
+    0 0 10px #00ff00;
+  font-family: 'Courier New', monospace;
 }
 
 .card-main-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-20);
-  margin: var(--space-24) 0;
+  gap: 20px;
+  margin: 20px 0;
 }
 
 .main-stat {
-  background: 
-    var(--pattern-shippo),
-    linear-gradient(
-      135deg,
-      rgba(33, 128, 141, 0.02) 0%,
-      rgba(33, 128, 141, 0.01) 100%
-    );
-  background-size: 32px 32px, 100% 100%;
-  background-position: 0 0, 0 0;
-  border: 1px solid var(--color-card-border-inner);
-  border-radius: var(--radius-base);
-  padding: var(--space-20);
-  text-align: left;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
   position: relative;
-  transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.main-stat:hover {
-  border-color: rgba(33, 128, 141, 0.2);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
 }
 
 .fit-stat {
-  position: relative;
-}
-
-.fit-stat::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
-  background: linear-gradient(
-    180deg,
-    rgba(33, 128, 141, 0.6) 0%,
-    rgba(33, 128, 141, 0.2) 100%
-  );
-  border-radius: 0 2px 2px 0;
+  border-color: #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
 }
 
 .vibe-stat {
-  position: relative;
-}
-
-.vibe-stat::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
-  background: linear-gradient(
-    180deg,
-    rgba(168, 75, 47, 0.6) 0%,
-    rgba(168, 75, 47, 0.2) 100%
-  );
-  border-radius: 0 2px 2px 0;
+  border-color: #ff00ff;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
 }
 
 .main-stat-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: 14px;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-8);
-  font-weight: var(--font-weight-medium);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-weight: bold;
 }
 
 .main-stat-value {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-semibold);
-  font-family: var(--font-family-base);
-  line-height: var(--line-height-tight);
-  color: var(--color-text);
+  font-size: 32px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
 }
 
 .fit-stat .main-stat-value {
-  color: var(--color-primary);
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
 }
 
 .vibe-stat .main-stat-value {
-  color: var(--color-warning);
-}
-
-/* Traditional Japanese Page Ornaments */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: 
-    var(--pattern-sakura),
-    linear-gradient(
-      180deg,
-      rgba(33, 128, 141, 0.02) 0%,
-      transparent 100%
-    );
-  background-size: 60px 60px, 100% 100%;
-  background-position: 0 0, 0 0;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.6;
-}
-
-.app-container::before {
-  content: '';
-  position: absolute;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  height: 3px;
-  background: 
-    repeating-linear-gradient(
-      90deg,
-      rgba(33, 128, 141, 0.3) 0px,
-      rgba(33, 128, 141, 0.3) 8px,
-      transparent 8px,
-      transparent 16px
-    ),
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(168, 75, 47, 0.2) 20%,
-      rgba(168, 75, 47, 0.4) 50%,
-      rgba(168, 75, 47, 0.2) 80%,
-      transparent 100%
-    );
-  border-radius: 2px;
-  z-index: 1;
-}
-
-/* 3D Sushi Diorama Integration */
-.sushi-diorama-section {
-  margin: 48px auto;
-  padding: 0 24px;
-  max-width: 480px;
-  position: relative;
-}
-
-.sushi-diorama-section::before {
-  content: '';
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(33, 128, 141, 0.2) 20%,
-    rgba(33, 128, 141, 0.4) 50%,
-    rgba(33, 128, 141, 0.2) 80%,
-    transparent 100%
-  );
-  border-radius: 1px;
-}
-
-#sushi-3d-canvas {
-  width: 100% !important;
-  height: 400px !important;
-  border-radius: var(--radius-lg) !important;
-  border: 1px solid var(--color-card-border);
-  box-shadow: 
-    var(--shadow-sm),
-    0 2px 8px rgba(33, 128, 141, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-  transition: all var(--duration-normal) var(--ease-standard);
-  background: linear-gradient(
-    135deg,
-    rgba(26, 26, 46, 0.95) 0%,
-    rgba(26, 26, 46, 1) 100%
-  );
-}
-
-#sushi-3d-canvas:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    var(--shadow-md),
-    0 4px 16px rgba(33, 128, 141, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  border-color: rgba(33, 128, 141, 0.2);
-}
-
-/* Responsive adjustments for mobile */
-@media (max-width: 480px) {
-  .job-card {
-    margin: 16px;
-    padding: 24px;
-    max-width: calc(100% - 32px);
-  }
-  
-  .card-main-stats {
-    gap: var(--space-16);
-  }
-  
-  .main-stat {
-    padding: var(--space-16);
-  }
-  
-  .company-name {
-    font-size: var(--font-size-xl);
-  }
-  
-  .role-title {
-    font-size: var(--font-size-base);
-  }
-  
-  .sushi-diorama-section {
-    margin: 32px auto;
-    padding: 0 16px;
-  }
-  
-  #sushi-3d-canvas {
-    height: 300px !important;
-  }
+  color: #ff00ff;
+  text-shadow: 0 0 10px #ff00ff;
 }
 
 .card-secondary-stats {

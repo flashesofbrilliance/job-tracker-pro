@@ -1,0 +1,19 @@
+{
+  "name": "Sushi Discovery Engine",
+  "short_name": "SushiJobs",
+  "description": "AI-powered job discovery with 3D sushi conveyor belt interface",
+  "start_url": "/discovery.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#21808d",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}

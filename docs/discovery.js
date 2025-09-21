@@ -1398,7 +1398,7 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js')
         .then((registration) => {
-          
+          console.log('🍣 Sushi Discovery PWA: Service Worker registered successfully:', registration.scope);
           
           // Listen for updates
           registration.addEventListener('updatefound', () => {
@@ -1577,7 +1577,7 @@
     });
     
     window.addEventListener('appinstalled', () => {
-      
+      console.log('🍣 Sushi Discovery PWA: App installed successfully!');
       hideInstallButton();
       showToast('🍣 Sushi Discovery installed! Welcome to the omakase experience!', 'success');
     });
@@ -1598,7 +1598,7 @@
         const { outcome } = await deferredInstallPrompt.userChoice;
         
         if (outcome === 'accepted') {
-          
+          console.log('🍣 Sushi Discovery PWA: User accepted install prompt');
         }
         
         deferredInstallPrompt = null;
@@ -1868,8 +1868,8 @@
     conveyorBelt.beltSpeed = Math.max(4000, Math.floor(8000 / urgencyFactor));
     conveyorBelt.decisionWindow = Math.max(1000, Math.floor(2000 / urgencyFactor));
     
-    
-    
+    console.log(`🍣 Chef Strategy: Need ${chefStrategy.applicationsNeeded} applications for ${chefStrategy.offerTarget} offers`);
+    console.log(`⚡ Belt speed: ${conveyorBelt.beltSpeed}ms, Decision window: ${conveyorBelt.decisionWindow}ms`);
   }
   
   // Job Analysis Functions
@@ -2471,7 +2471,7 @@
   let sushiSceneManager = null;
   
   function initialize3DScene() {
-    const canvas = document.getElementById('sushi-3d-canvas');
+    const canvas = document.getElementById('sushi-canvas');
     if (!canvas) {
       console.warn('Canvas element not found for 3D scene');
       return false;
@@ -2489,7 +2489,7 @@
         }
       });
       
-      
+      console.log('✅ 3D Sushi Scene initialized');
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize 3D scene:', error);
@@ -2831,7 +2831,7 @@
   
   function toggleBeltPause() {
     beltPaused = !beltPaused;
-    
+    console.log(`Belt ${beltPaused ? 'paused' : 'resumed'}`);
     // Could add visual indicators here
   }
   
@@ -2839,12 +2839,12 @@
     const speeds = ['slow', 'normal', 'fast'];
     const currentSpeedIndex = speeds.indexOf(beltSpeed);
     beltSpeed = speeds[(currentSpeedIndex + 1) % speeds.length];
-    
+    console.log(`Belt speed changed to: ${beltSpeed}`);
     // Could add visual indicators here
   }
   
   function updateFocusedPlate() {
-    
+    console.log(`Focused plate: ${focusedPlate}`);
     // Could add visual focus indicators here
     if (focusedPlate !== currentIndex) {
       currentIndex = focusedPlate;
@@ -2893,7 +2893,7 @@
 
   // Generate fallback recommendations when no data exists
   function generateFallbackRecommendations() {
-    
+    console.log('🌾 Creating demo recommendations for first-time users');
     const fallbackJobs = [
       {
         id: 'demo-1',
@@ -2960,10 +2960,10 @@
     }
     
     const jobs = getJobs();
-    
+    console.log('📊 Jobs loaded:', jobs.length);
     
     const insights = window.DiscoveryCore.analyzeLearningSignals(jobs);
-    
+    console.log('💡 Insights generated:', insights);
     
     // Update learning signals
     const signals = $('#signals');
@@ -2987,20 +2987,20 @@
     }
 
     const recos = window.DiscoveryCore.generateRecommendations(jobs, insights, Date.now() % 97);
-    
+    console.log('🍣 Recommendations generated:', recos.length, recos);
     
     // Set up recommendations for conveyor belt
     currentRecos = recos;
     currentIndex = 0;
     
     if (recos.length > 0 && !conveyorBelt.isProcessing) {
-      
+      console.log('🌾 Starting conveyor belt with first recommendation:', recos[0]);
       addSushiToBelt(recos[0]);
     } else {
       console.warn('⚠️ No recommendations to start belt with. Recos length:', recos.length, 'Belt processing:', conveyorBelt.isProcessing);
       // Try to generate some fallback recommendations
       if (recos.length === 0) {
-        
+        console.log('🌾 Generating fallback recommendations...');
         const fallbackRecos = generateFallbackRecommendations();
         currentRecos = fallbackRecos;
         if (fallbackRecos.length > 0) {
@@ -3071,32 +3071,7 @@
     updateKnifeSkillsDisplay();
     
     // Initialize 3D Sushi Scene
-    const sceneInitialized = initialize3DScene();
-    
-    // Add continuous sushi generation for demonstration
-    if (sceneInitialized && sushiSceneManager) {
-      // Add initial test sushi
-      setTimeout(() => {
-        sushiSceneManager.displaySushi('salmon', 0.8, 'golden_sushi');
-      }, 1000);
-      
-      setTimeout(() => {
-        sushiSceneManager.displaySushi('tuna', 0.6, 'normal');
-      }, 3000);
-      
-      setTimeout(() => {
-        sushiSceneManager.displaySushi('roll', 0.7, 'quality_choice');
-      }, 5000);
-      
-      // Keep adding random sushi every few seconds for demonstration
-      setInterval(() => {
-        const types = ['salmon', 'tuna', 'roll'];
-        const categories = ['normal', 'golden_sushi', 'quality_choice'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-        sushiSceneManager.displaySushi(randomType, Math.random(), randomCategory);
-      }, 6000);
-    }
+    initialize3DScene();
     
     render();
     

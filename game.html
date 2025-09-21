@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset=20250920212628"UTF-8" />
+  <meta name="viewport" content=20250920212628"width=device-width, initial-scale=1.0" />
+  <title>Training Game</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .game-container { display:flex; flex-direction:column; gap:16px; }
+    .belt { display:flex; align-items:center; justify-content:center; min-height:260px; border:1px dashed var(--border-color,#e5e7eb); border-radius:12px; background:var(--color-surface,#fff); }
+    .card { width:100%; max-width:560px; border:1px solid var(--border-color,#e5e7eb); border-radius:12px; padding:16px; box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.05)); }
+    .card-title { font-weight:600; margin-bottom:4px; }
+    .card-muted { opacity:.7; }
+    .actions { display:flex; gap:12px; justify-content:center; }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .chip { background:#f3f4f6; padding:4px 8px; border-radius:999px; font-size:12px; }
+    .reason-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; }
+    .reason-modal { background:#fff; padding:16px; border-radius:12px; width:320px; }
+  </style>
+  </head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="app-title"><i class="fas fa-gamepad"></i> Training Game</h1>
+        </div>
+        <div class="header-actions">
+          <a class="btn btn--secondary btn--sm" href="index.html"><i class="fas fa-home"></i> Back to App</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="game-container">
+        <div class="belt">
+          <div class="card" id="game-card">
+            <div class="card-title" id="card-title">Swipe to train</div>
+            <div class="card-muted" id="card-sub">Company and role are hidden until you choose.</div>
+            <div class="chips" id="why-chips"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn--outline" id="btn-dislike"><i class="fas fa-times"></i> Dislike</button>
+          <button class="btn btn--outline" id="btn-skip"><i class="fas fa-forward"></i> Skip</button>
+          <button class="btn btn--primary" id="btn-like"><i class="fas fa-check"></i> Like</button>
+          <button class="btn btn--primary" id="btn-super"><i class="fas fa-heart"></i> Super</button>
+        </div>
+      </div>
+    </main>
+
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <div class="reason-overlay" id="reason-overlay">
+    <div class="reason-modal">
+      <h3 style="margin-top:0">Why not?</h3>
+      <select class="form-control" id="reason-select" style="width:100%;margin:8px 0;">
+        <option value="">Select a reason…</option>
+        <option value="Compensation">Compensation</option>
+        <option value="Seniority/Level">Seniority/Level</option>
+        <option value="Location/Visa">Location/Visa</option>
+        <option value="Timing/Headcount">Timing/Headcount</option>
+        <option value="Domain Fit">Domain Fit</option>
+        <option value="Skills/Experience">Skills/Experience</option>
+        <option value="Other">Other</option>
+      </select>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn--outline" id="reason-cancel">Cancel</button>
+        <button class="btn btn--primary" id="reason-confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="discovery-core.js"></script>
+  <script src="game-core.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
+

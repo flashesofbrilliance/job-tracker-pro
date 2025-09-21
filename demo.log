@@ -1,0 +1,39 @@
+🍣 Starting Warp-Compatible Sushi Discovery Engine
+=================================================
+🔧 Bypassing Warp terminal localhost interception...
+🔪 Terminating any existing servers...
+✅ All servers terminated
+🚀 Starting server on port 8081 (Warp bypass)...
+🚀 Starting Warp-compatible server...
+⏳ Server starting (PID: 17271)...
+🧪 Testing server response...
+✅ Server is responding correctly on port 8081
+🏥 Quick health check...
+  ✅ Discovery Page: OK
+  ✅ Jobs API: OK
+  ✅ Stylesheet: OK
+
+🎉 WARP BYPASS SUCCESSFUL!
+========================
+
+🌐 Open in your EXTERNAL browser:
+   http://127.0.0.1:8081/discovery.html
+
+🚨 IMPORTANT FOR WARP USERS:
+   • Do NOT click localhost links in Warp terminal
+   • Copy/paste the URL above into Chrome/Safari/Firefox
+   • Or use: open http://127.0.0.1:8081/discovery.html
+
+📊 Working endpoints:
+   • Discovery Engine: http://127.0.0.1:8081/discovery.html
+   • Jobs API: http://127.0.0.1:8081/api/job-recommendations
+   • Health check: http://127.0.0.1:8081/manifest.json
+
+🪵 Server logs: tail -f server-warp.log
+🛑 Stop server: kill 17271
+
+💡 Why this works:
+   • Uses port 8081 instead of 8080 (Warp intercepts 8080)
+   • Binds to 0.0.0.0 instead of just localhost
+   • Forces external browser instead of Warp's internal view
+./start-warp-compatible.sh: line 252: 17271 Terminated: 15          node dev-server-warp.js > server-warp.log 2>&1

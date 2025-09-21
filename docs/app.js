@@ -193,11 +193,6 @@ let draggedElement = null;
 let currentEditingJob = null;
 let discoveryState = { recommendations: [], lastSeed: 0 };
 
-// Undo/Redo history stacks
-let __historyStack = [];
-let __redoStack = [];
-let __lastAction = '';
-
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
   initializeApp();
@@ -223,9 +218,6 @@ function initializeApp() {
       initializeCharts();
     }
   }, 500);
-  
-  // Initialize undo/redo UI state
-  updateUndoRedoButtons();
   
   console.log('Job Search Optimizer initialized with', jobsData.length, 'roles');
 }
@@ -266,18 +258,6 @@ function loadDataFromStorage() {
 }
 
 function bindEventListeners() {
-  // Global undo/redo keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    const mod = isMac ? e.metaKey : e.ctrlKey;
-    if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) {
-      e.preventDefault();
-      undo();
-    } else if ((mod && e.key.toLowerCase() === 'z' && e.shiftKey) || (mod && e.key.toLowerCase() === 'y')) {
-      e.preventDefault();
-      redo();
-    }
-  });
   // View switcher
   document.querySelectorAll('.view-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -341,7 +321,7 @@ function bindEventListeners() {
   if (bulkEditBtn) {
     bulkEditBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      openBulkEditModal();
+      handleBulkEdit();
     });
   }
   
@@ -367,45 +347,6 @@ function bindEventListeners() {
     exportBtn.addEventListener('click', (e) => {
       e.preventDefault();
       handleExport();
-    });
-  }
-
-  // Undo/Redo buttons
-  const undoBtn = document.getElementById('undo-btn');
-  if (undoBtn) {
-    undoBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      undo();
-    });
-  }
-  const redoBtn = document.getElementById('redo-btn');
-  if (redoBtn) {
-    redoBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      redo();
-    });
-  }
-
-  // Bulk edit modal buttons
-  const bulkEditApply = document.getElementById('bulk-edit-apply');
-  if (bulkEditApply) {
-    bulkEditApply.addEventListener('click', (e) => {
-      e.preventDefault();
-      applyBulkEditChanges();
-    });
-  }
-  const bulkEditCancel = document.getElementById('bulk-edit-cancel');
-  if (bulkEditCancel) {
-    bulkEditCancel.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeBulkEditModal();
-    });
-  }
-  const bulkEditClose = document.getElementById('bulk-edit-close');
-  if (bulkEditClose) {
-    bulkEditClose.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeBulkEditModal();
     });
   }
   
@@ -758,7 +699,6 @@ function getDiscoveryCatalog() {
 function addDiscoveredRole(idx) {
   const rec = discoveryState.recommendations[idx];
   if (!rec) return;
-  snapshotState('Add discovered role');
   const newJob = {
     id: `${rec.id}-${Date.now()}`,
     company: rec.company,
@@ -844,14 +784,13 @@ function createTableRow(job) {
     <td class="select-col"></td>
     <td class="company-cell">${job.company}</td>
     <td class="role-cell">
-      <div class="role-title"><a href="${getJobLink(job)}" target="_blank" rel="noopener">${job.roleTitle}</a></div>
+      <div class="role-title">${job.roleTitle}</div>
     </td>
     <td>
       <span class="status-badge ${job.status}">${formatStatus(job.status)}</span>
     </td>
     <td class="fit-score">
-      <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore.toFixed ? job.fitScore.toFixed(1) : job.fitScore}</span>
-      <span class="fit-sep" style="opacity:0.5;padding:0 4px;">•</span>
+      <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore}</span>
       <span class="vibe-indicator">${job.vibe}</span>
     </td>
     <td class="salary-cell">${job.salary}</td>
@@ -902,12 +841,11 @@ function createKanbanCard(job) {
     <div class="kanban-card-header">
       <span class="kanban-card-company">${job.company}</span>
       <div class="kanban-card-fit">
-        <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore.toFixed ? job.fitScore.toFixed(1) : job.fitScore}</span>
-        <span class="fit-sep" style="opacity:0.5;padding:0 4px;">•</span>
+        <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore}</span>
         <span class="vibe-indicator">${job.vibe}</span>
       </div>
     </div>
-    <div class="kanban-card-title"><a href="${getJobLink(job)}" target="_blank" rel="noopener">${job.roleTitle}</a></div>
+    <div class="kanban-card-title">${job.roleTitle}</div>
     <div class="kanban-card-meta">
       <span class="kanban-card-location">${job.location}</span>
       <span class="kanban-card-salary">${job.salary.split(' ')[0]}</span>
@@ -986,7 +924,6 @@ function handleDrop(e, newStatus) {
   const job = jobsData.find(j => j.id === jobId);
   
   if (job && job.status !== newStatus) {
-    snapshotState(`Move ${job.company} to ${formatStatus(newStatus)}`);
     const oldStatus = job.status;
     job.status = newStatus;
     
@@ -1240,9 +1177,6 @@ function createJobEditForm(job) {
 function saveJobChanges() {
   if (!currentEditingJob) return;
   
-  // Take snapshot before saving changes
-  snapshotState('Edit job');
-  
   // Find the original job
   const jobIndex = jobsData.findIndex(j => j.id === currentEditingJob.id);
   if (jobIndex === -1) return;
@@ -1461,8 +1395,6 @@ function showAddActivityModal() {
 function saveActivity() {
   if (!currentEditingJob) return;
   
-  snapshotState('Add activity');
-  
   const type = document.getElementById('activity-type')?.value;
   const date = document.getElementById('activity-date')?.value;
   const notes = document.getElementById('activity-notes')?.value;
@@ -1506,8 +1438,6 @@ function saveActivity() {
 
 function removeActivity(index) {
   if (!currentEditingJob) return;
-  
-  snapshotState('Remove activity');
   
   const job = jobsData.find(j => j.id === currentEditingJob.id);
   if (job && job.activityLog[index]) {
@@ -1626,84 +1556,45 @@ function updateBulkActions() {
   updateSelectAllState();
 }
 
-function openBulkEditModal() {
+function handleBulkEdit() {
   if (selectedJobs.size === 0) return;
-  const modal = document.getElementById('bulk-edit-modal');
-  if (modal) modal.classList.remove('hidden');
-}
-
-function closeBulkEditModal() {
-  const modal = document.getElementById('bulk-edit-modal');
-  if (modal) modal.classList.add('hidden');
-}
-
-function applyBulkEditChanges() {
-  if (selectedJobs.size === 0) { closeBulkEditModal(); return; }
-
-  const applyStatus = document.getElementById('bulk-apply-status')?.checked;
-  const newStatus = document.getElementById('bulk-status')?.value;
-  const applyFit = document.getElementById('bulk-apply-fit')?.checked;
-  const newFit = parseFloat(document.getElementById('bulk-fit')?.value);
-  const applyVibe = document.getElementById('bulk-apply-vibe')?.checked;
-  const newVibe = document.getElementById('bulk-vibe')?.value;
-  const archive = document.getElementById('bulk-archive')?.checked;
-
-  if (!applyStatus && !applyFit && !applyVibe && !archive) {
-    showToast('Select at least one field to update', 'error');
-    return;
-  }
-
-  snapshotState('Bulk edit');
-
-  let bulkReason = '';
-  const finalStatus = archive ? 'rejected' : newStatus;
-  if ((applyStatus && finalStatus === 'rejected') || archive) {
-    bulkReason = promptRejectionReason();
-  }
-
-  selectedJobs.forEach(jobId => {
-    const job = jobsData.find(j => j.id === jobId);
-    if (!job) return;
-
-    if (applyStatus || archive) {
-      job.status = finalStatus;
-      job.activityLog.push({
-        date: new Date().toISOString().split('T')[0],
-        type: 'Bulk Update',
-        note: `Status changed to ${formatStatus(finalStatus)} via bulk action`
-      });
-      if (finalStatus === 'applied' && !job.appliedDate) {
-        job.appliedDate = new Date().toISOString().split('T')[0];
+  
+  const newStatus = prompt('Enter new status for selected jobs:\n- not-started\n- research\n- applied\n- interviewing\n- offer\n- rejected');
+  
+  if (newStatus && ['not-started', 'research', 'applied', 'interviewing', 'offer', 'rejected'].includes(newStatus)) {
+    let bulkReason = '';
+    if (newStatus === 'rejected') {
+      bulkReason = promptRejectionReason();
+    }
+    selectedJobs.forEach(jobId => {
+      const job = jobsData.find(j => j.id === jobId);
+      if (job) {
+        job.status = newStatus;
+        job.activityLog.push({
+          date: new Date().toISOString().split('T')[0],
+          type: 'Bulk Update',
+          note: `Status changed to ${formatStatus(newStatus)} via bulk action`
+        });
+        if (newStatus === 'rejected' && bulkReason) {
+          addRejectionActivity(job, bulkReason, 'Captured via bulk edit');
+        }
       }
-      if (finalStatus === 'rejected' && bulkReason) {
-        addRejectionActivity(job, bulkReason, 'Captured via bulk edit');
-      }
-    }
-
-    if (applyFit && !isNaN(newFit)) {
-      job.fitScore = Math.max(0, Math.min(10, parseFloat(newFit.toFixed(1))));
-    }
-
-    if (applyVibe && newVibe) {
-      job.vibe = newVibe;
-    }
-  });
-
-  const selectedCount = selectedJobs.size;
-  selectedJobs.clear();
-  saveDataToStorage();
-  applyAllFilters();
-  updateBulkActions();
-  renderDashboard();
-  closeBulkEditModal();
-  showToast(`Updated ${selectedCount} job(s)`, 'success');
+    });
+    
+    const selectedCount = selectedJobs.size;
+    selectedJobs.clear();
+    saveDataToStorage();
+    applyAllFilters();
+    updateBulkActions();
+    renderDashboard();
+    showToast(`Updated ${selectedCount} jobs to ${formatStatus(newStatus)}`, 'success');
+  }
 }
 
 function handleBulkArchive() {
   if (selectedJobs.size === 0) return;
   
   if (confirm(`Archive ${selectedJobs.size} selected jobs?`)) {
-    snapshotState('Bulk archive');
     // Ask once for a rejection reason to apply to all
     const bulkReason = promptRejectionReason();
     selectedJobs.forEach(jobId => {
@@ -1735,7 +1626,6 @@ function handleBulkReset() {
   if (selectedJobs.size === 0) return;
   
   if (confirm(`Reset ${selectedJobs.size} selected jobs to 'Not Started' status?`)) {
-    snapshotState('Bulk reset');
     selectedJobs.forEach(jobId => {
       const job = jobsData.find(j => j.id === jobId);
       if (job) {
@@ -1967,7 +1857,6 @@ function showResetModal() {
 }
 
 function handleResetConfirm() {
-  snapshotState('Reset pipeline');
   const resetStages = document.getElementById('reset-stages');
   const resetDates = document.getElementById('reset-dates');
   const resetNotes = document.getElementById('reset-notes');
@@ -2003,70 +1892,8 @@ function handleResetConfirm() {
 }
 
 // Utility Functions
-function snapshotState(actionLabel = '') {
-  try {
-    __historyStack.push(JSON.stringify(jobsData));
-    __redoStack = [];
-    __lastAction = actionLabel;
-    updateUndoRedoButtons();
-  } catch (e) {
-    console.warn('Failed to snapshot state', e);
-  }
-}
-
-function undo() {
-  if (__historyStack.length === 0) return;
-  try {
-    const current = JSON.stringify(jobsData);
-    __redoStack.push(current);
-    const prev = __historyStack.pop();
-    jobsData = JSON.parse(prev);
-    saveDataToStorage();
-    applyAllFilters();
-    renderDashboard();
-    renderCurrentView();
-    updateUndoRedoButtons();
-    showToast('Undid last change' + (__lastAction ? `: ${__lastAction}` : ''), 'info');
-  } catch (e) {
-    console.error('Failed to undo', e);
-  }
-}
-
-function redo() {
-  if (__redoStack.length === 0) return;
-  try {
-    __historyStack.push(JSON.stringify(jobsData));
-    const next = __redoStack.pop();
-    jobsData = JSON.parse(next);
-    saveDataToStorage();
-    applyAllFilters();
-    renderDashboard();
-    renderCurrentView();
-    updateUndoRedoButtons();
-    showToast('Redid change', 'info');
-  } catch (e) {
-    console.error('Failed to redo', e);
-  }
-}
-
-function updateUndoRedoButtons() {
-  const undoBtn = document.getElementById('undo-btn');
-  const redoBtn = document.getElementById('redo-btn');
-  if (undoBtn) undoBtn.disabled = __historyStack.length === 0;
-  if (redoBtn) redoBtn.disabled = __redoStack.length === 0;
-}
-
 function formatStatus(status) {
   return status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
-
-function getJobLink(job) {
-  // If a direct URL exists on the job, use it. Otherwise, fallback to a search query.
-  if (job.jobUrl && typeof job.jobUrl === 'string' && /^https?:\/\//i.test(job.jobUrl)) {
-    return job.jobUrl;
-  }
-  const q = encodeURIComponent(`${job.company} ${job.roleTitle} job`);
-  return `https://www.google.com/search?q=${q}`;
 }
 
 function getFitScoreClass(score) {

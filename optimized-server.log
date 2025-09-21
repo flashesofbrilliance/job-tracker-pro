@@ -1,0 +1,13 @@
+🏮 Warp-Compatible Sushi Discovery Server
+=========================================
+🚀 Server: http://127.0.0.1:8081
+🍣 Discovery: http://127.0.0.1:8081/discovery.html
+📊 API: http://127.0.0.1:8081/api/job-recommendations
+
+✅ Bypassing Warp terminal localhost interception!
+2025-09-21T02:11:23.170Z GET /three.min.js
+2025-09-21T02:11:23.186Z GET /discovery.html
+2025-09-21T02:11:23.513Z GET /discovery-emergency-fix.html
+2025-09-21T02:11:25.247Z GET /sw.js
+2025-09-21T02:11:25.264Z GET /manifest.json
+2025-09-21T02:11:25.265Z GET /style.css
