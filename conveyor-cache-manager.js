@@ -62,7 +62,7 @@ class ConveyorCacheManager {
     this.bufferQueue = initialBatch.map(id => this.jobCache.get(id));
     
     // Start background prefetching
-    this.prefetchNextBatch();
+    this.startPredictiveLoading();
     
     console.log(`✅ Initial buffer loaded: ${this.bufferQueue.length} jobs ready`);
   }

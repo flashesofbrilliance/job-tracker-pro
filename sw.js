@@ -7,13 +7,8 @@ const DATA_CACHE_NAME = 'sushi-data-v2025-09-21-clean';
 // Static assets that can be cached aggressively
 const STATIC_ASSETS = [
   './manifest.json',
-  './style.css',
-  // External CDN resources (cached for offline)
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.20.0/cannon.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  './style.css'
+  // External CDN resources cached on demand, not during install
 ];
 
 // Dynamic assets that need fresh content (network-first)
@@ -89,9 +84,15 @@ self.addEventListener('fetch', (event) => {
         // Otherwise fetch from network
         return fetch(event.request)
           .then((response) => {
-            // Don't cache if not a valid response (including 404s)
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              console.warn('🚫 Not caching failed request:', event.request.url, 'Status:', response?.status);
+            // Don't cache external CDN resources or failed requests
+            const isExternalResource = !event.request.url.startsWith(self.location.origin);
+            const isFailedResponse = !response || response.status !== 200;
+            const isCorsResponse = response.type === 'opaque' || response.type === 'opaqueredirect';
+            
+            if (isFailedResponse || isExternalResource || isCorsResponse) {
+              if (isFailedResponse) {
+                console.warn('🚫 Not caching failed request:', event.request.url, 'Status:', response?.status);
+              }
               return response;
             }
 

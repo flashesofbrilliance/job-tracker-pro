@@ -196,8 +196,9 @@ class MobilePerformanceManager {
       
       if (this.gpuAvailable.available) {
         // Precompile shaders
-        const vertexShader = this.compileShader(shaderSource, 'vertex');
-        const fragmentShader = this.compileShader(shaderSource, 'fragment');
+        // Basic shader compilation - simplified for stability
+        const vertexShader = this.createShaderFromSource(shaderSource, 'vertex');
+        const fragmentShader = this.createShaderFromSource(shaderSource, 'fragment');
         
         this.preloadCache.set(`${asset.url}_vertex`, vertexShader);
         this.preloadCache.set(`${asset.url}_fragment`, fragmentShader);
@@ -275,6 +276,30 @@ class MobilePerformanceManager {
       default:
         throw new Error(`Unknown sync operation: ${operation.type}`);
     }
+  }
+
+  // Simplified shader creation
+  createShaderFromSource(source, type) {
+    if (!this.gl) {
+      const canvas = document.createElement('canvas');
+      this.gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    }
+    
+    if (!this.gl) return null;
+    
+    const shaderType = type === 'vertex' ? this.gl.VERTEX_SHADER : this.gl.FRAGMENT_SHADER;
+    const shader = this.gl.createShader(shaderType);
+    
+    this.gl.shaderSource(shader, source);
+    this.gl.compileShader(shader);
+    
+    if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+      console.warn('Shader compilation failed:', this.gl.getShaderInfoLog(shader));
+      this.gl.deleteShader(shader);
+      return null;
+    }
+    
+    return shader;
   }
 
   // GPU-Accelerated Rendering Pipeline

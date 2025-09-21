@@ -1,77 +1,10 @@
-🏮 Sushi Discovery Development Server
-====================================
-🚀 Server running at: http://127.0.0.1:8080
-🍣 Discovery Engine: http://127.0.0.1:8080/discovery.html
-📊 API Mock Endpoints:
-   GET /api/job-recommendations
-   GET /api/jobs/{id}
+🏮 Warp-Compatible Sushi Discovery Server
+=========================================
+🚀 Server: http://127.0.0.1:8081
+🍣 Discovery: http://127.0.0.1:8081/discovery.html
+📊 API: http://127.0.0.1:8081/api/job-recommendations
 
-✅ Ready for smooth conveyor belt job discovery!
-
-2025-09-21T01:33:44.316Z GET /api/job-recommendations
-2025-09-21T01:33:53.544Z GET /discovery.html
-2025-09-21T01:33:53.556Z GET /assets/sushi-sprites.webp
-2025-09-21T01:33:53.567Z GET /shaders/particle-effects.glsl
-2025-09-21T01:33:53.576Z GET /icons/icon-192x192.png
-2025-09-21T01:34:53.320Z GET /discovery.html
-2025-09-21T01:34:53.338Z GET /style.css
-2025-09-21T01:34:53.355Z GET /favicon.ico
-2025-09-21T01:34:53.373Z GET /manifest.json
-2025-09-21T01:34:53.395Z GET /icons/icon-192x192.png
-2025-09-21T01:34:53.418Z GET /assets/sushi-sprites.webp
-2025-09-21T01:34:53.442Z GET /shaders/particle-effects.glsl
-2025-09-21T01:34:53.465Z GET /api/job-recommendations
-2025-09-21T01:34:53.483Z GET /api/job-recommendations
-2025-09-21T01:34:53.503Z GET /api/jobs/job-1
-2025-09-21T01:34:53.520Z HEAD /assets/sushi-sprites.webp
-2025-09-21T01:34:53.536Z HEAD /shaders/particle-effects.glsl
-2025-09-21T01:34:53.557Z GET /discovery.html
-2025-09-21T01:35:18.736Z GET /discovery.html
-2025-09-21T01:35:18.751Z GET /style.css
-2025-09-21T01:35:18.766Z GET /favicon.ico
-2025-09-21T01:35:18.780Z GET /manifest.json
-2025-09-21T01:35:18.798Z GET /icons/icon-192x192.png
-2025-09-21T01:35:18.812Z GET /assets/sushi-sprites.webp
-2025-09-21T01:35:18.827Z GET /shaders/particle-effects.glsl
-2025-09-21T01:35:18.841Z GET /api/job-recommendations
-2025-09-21T01:35:18.854Z GET /api/job-recommendations
-2025-09-21T01:35:18.869Z GET /api/jobs/job-1
-2025-09-21T01:35:18.882Z HEAD /assets/sushi-sprites.webp
-2025-09-21T01:35:18.895Z HEAD /shaders/particle-effects.glsl
-2025-09-21T01:35:18.911Z GET /discovery.html
-2025-09-21T01:37:39.759Z GET /discovery.html
-2025-09-21T01:37:39.807Z GET /style.css
-2025-09-21T01:37:39.918Z GET /performance-manager.js
-2025-09-21T01:37:39.942Z GET /discovery-core.js
-2025-09-21T01:37:39.942Z GET /conveyor-cache-manager.js
-2025-09-21T01:37:39.943Z GET /discovery.js
-2025-09-21T01:37:40.008Z GET /shaders/particle-effects.glsl
-2025-09-21T01:37:40.025Z GET /assets/sushi-sprites.webp
-2025-09-21T01:37:41.958Z GET /assets/swipe-sounds.webm
-2025-09-21T01:37:42.004Z GET /sushi-scene-manager.js
-2025-09-21T01:37:42.004Z GET /woodblock-patterns.js
-2025-09-21T01:37:42.038Z GET /api/job-recommendations
-2025-09-21T01:37:42.251Z GET /sw.js
-2025-09-21T01:37:42.274Z GET /manifest.json
-2025-09-21T01:37:42.290Z GET /icons/icon-192x192.png
-2025-09-21T01:37:42.297Z GET /favicon.ico
-2025-09-21T01:37:42.299Z GET /manifest.json
-2025-09-21T01:37:42.300Z GET /style.css
-2025-09-21T01:37:43.207Z GET /discovery.html
-2025-09-21T01:37:43.224Z GET /style.css
-2025-09-21T01:37:43.238Z GET /performance-manager.js
-2025-09-21T01:37:43.239Z GET /discovery-core.js
-2025-09-21T01:37:43.240Z GET /conveyor-cache-manager.js
-2025-09-21T01:37:43.240Z GET /discovery.js
-2025-09-21T01:37:43.281Z GET /shaders/particle-effects.glsl
-2025-09-21T01:37:43.281Z GET /assets/sushi-sprites.webp
-2025-09-21T01:37:43.304Z GET /assets/swipe-sounds.webm
-2025-09-21T01:37:43.401Z GET /api/job-recommendations
-2025-09-21T01:37:43.401Z GET /sushi-scene-manager.js
-2025-09-21T01:37:43.402Z GET /woodblock-patterns.js
-2025-09-21T01:37:43.618Z GET /manifest.json
-2025-09-21T01:37:43.619Z GET /favicon.ico
-2025-09-21T01:37:43.626Z GET /icons/icon-192x192.png
-2025-09-21T01:37:45.654Z GET /sw.js
-2025-09-21T01:37:47.563Z GET /sw.js
-2025-09-21T01:37:49.750Z GET /.well-known/appspecific/com.chrome.devtools.json
+✅ Bypassing Warp terminal localhost interception!
+2025-09-21T01:55:41.316Z GET /api/job-recommendations
+2025-09-21T01:57:22.674Z GET /discovery.html
+2025-09-21T01:57:22.688Z GET /api/job-recommendations
