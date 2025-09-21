@@ -100,21 +100,33 @@ update_asset_refs() {
     success "Asset references updated"
 }
 
-# Validate code quality
+# Validate code quality with comprehensive testing
 validate_quality() {
     log "Validating code quality..."
     
-    # Check file sizes
-    find . -name "*.js" -size +500k | while read file; do
-        warning "Large file detected: $file"
-    done
-    
-    # Basic syntax validation
-    find . -name "*.js" -exec node -c {} \; 2>/dev/null || {
-        error "JavaScript syntax errors found"
-    }
-    
-    success "Quality validation passed"
+    # Run pre-build test suite
+    if [ -f "test-suite.js" ]; then
+        log "Running comprehensive pre-build tests..."
+        if node test-suite.js; then
+            success "Pre-build test suite passed"
+        else
+            error "Pre-build tests failed - fix errors before continuing"
+        fi
+    else
+        warning "test-suite.js not found, running basic validation"
+        
+        # Check file sizes
+        find . -name "*.js" -size +500k | while read file; do
+            warning "Large file detected: $file"
+        done
+        
+        # Basic syntax validation
+        find . -name "*.js" -exec node -c {} \; 2>/dev/null || {
+            error "JavaScript syntax errors found"
+        }
+        
+        success "Basic quality validation passed"
+    fi
 }
 
 # Development server with proper version control

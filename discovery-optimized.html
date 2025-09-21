@@ -22,8 +22,12 @@
   </style>
   
   <!-- OPTIMIZED: Non-blocking CSS load with media attribute trick -->
-  <link rel="preload" href="style.css?v=0.1.0&t=20250920212628" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="style.css?v=0.1.0&t=20250920212628"></noscript>
+  <link rel="preload" href="style.css?v=0.1.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="style.css?v=0.1.0"></noscript>
+  
+  <!-- OPTIMIZED: Font Awesome with preload -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
   
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -37,6 +41,13 @@
   <meta name="viewport" content=20250920212628"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=20250920212628cover">
   <meta name="mobile-web-app-capable" content=20250920212628"yes">
   <meta name="format-detection" content=20250920212628"telephone=no">
+  
+  <!-- CRITICAL: Preload essential JavaScript for faster execution -->
+  <link rel="modulepreload" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+  
+  <!-- OPTIMIZED: Resource hints for better performance -->
+  <link rel="prefetch" href="sushi-scene-manager.js?v=final&t=20250920212628">
+  <link rel="prefetch" href="discovery.js?v=final&t=20250920212628">
 </head>
 <body>
   <!-- Loading Screen for better perceived performance -->
@@ -179,23 +190,20 @@
     console.log('🚀 Hardware capability detected:', { GPU: window.GPU_CAPABLE });
   </script>
   
-  <!-- Phase 2: Essential Libraries (Only Three.js - removed unused GSAP, Cannon.js, Tween.js) -->
+  <!-- Phase 2: Essential Libraries (highest priority) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
   
   <!-- Phase 3: Core Application Modules (medium priority) -->
-  <script src="performance-manager.js?v=clean&t=20250920212628" defer></script>
-  <script src="discovery-core.js?v=clean&t=20250920212628" defer></script>
+  <script src="performance-manager.js" defer></script>
+  <script src="discovery-core.js" defer></script>
   
-  <!-- Phase 4: Cache Management (New addition) -->
-  <script src="conveyor-cache-manager.js?v=clean&t=20250920212628" defer></script>
-  
-  <!-- Phase 5: 3D Scene Components (lazy loaded after critical path) -->
+  <!-- Phase 4: 3D Scene Components (lazy loaded after critical path) -->
   <script>
     // Lazy load 3D components after critical rendering
     function loadEnhancedComponents() {
       const scripts = [
-        'sushi-scene-manager.js?v=clean&t=20250920212628',
-        'woodblock-patterns.js?v=clean&t=20250920212628'
+        'sushi-scene-manager.js?v=final&t=20250920212628',
+        'woodblock-patterns.js?v=final&t=20250920212628'
       ];
       
       scripts.forEach((src, index) => {
@@ -230,8 +238,29 @@
     }
   </script>
   
-  <!-- Phase 6: Main Application Logic -->
-  <script src="discovery.js?v=clean&t=20250920212628" defer></script>
+  <!-- Phase 5: Main Application Logic (loaded after 3D components) -->
+  <script src="discovery.js?v=final&t=20250920212628" defer></script>
+  
+  <!-- Phase 6: Optional Enhancement Modules (lowest priority) -->
+  <script>
+    // Load optional modules only if performance allows
+    function loadOptionalModules() {
+      if (window.performance && performance.now() < 3000) { // Only if fast enough
+        const optionalModules = ['metrics-framework.js'];
+        optionalModules.forEach(src => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.defer = true;
+          document.head.appendChild(script);
+        });
+      }
+    }
+    
+    // Load optional modules after everything else
+    window.addEventListener('load', function() {
+      setTimeout(loadOptionalModules, 500);
+    });
+  </script>
   
   <!-- Phase 7: Application Initialization -->
   <script>
@@ -244,22 +273,14 @@
         setTimeout(() => loadingScreen.remove(), 300);
       }
       
-      // Initialize cache manager for smooth conveyor belt
-      if (window.ConveyorCacheManager) {
-        window.cacheManager = new ConveyorCacheManager({
-          bufferSize: 5,
-          prefetchSize: 3,
-          maxCacheSize: 20
-        });
-        
-        // Load initial job set
-        const jobIds = Array.from({length: 100}, (_, i) => `job-${i + 1}`);
-        window.cacheManager.loadInitialJobs(jobIds);
-      }
-      
       // Initialize performance manager with hardware optimization
       if (window.MobilePerformanceManager) {
         window.performanceManager = new MobilePerformanceManager();
+      }
+      
+      // Initialize metrics if available
+      if (window.UXMetricsFramework) {
+        window.uxMetrics = new UXMetricsFramework();
       }
       
       // Performance mark

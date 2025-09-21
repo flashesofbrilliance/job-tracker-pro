@@ -54,7 +54,7 @@ class SushiSceneManager {
   
   async init() {
     try {
-      console.log('🏮 Initializing Japanese Shoji Box Diorama...');
+      
       
       this.setupScene();
       this.setupStaticCamera();
@@ -68,7 +68,7 @@ class SushiSceneManager {
       
       this.startRenderLoop();
       
-      console.log('✅ Shoji Box Diorama initialized successfully');
+      
     } catch (error) {
       console.error('❌ Failed to initialize Shoji Box:', error);
     }
@@ -126,7 +126,7 @@ class SushiSceneManager {
     this.camera.position.set(0, 3, 8);
     this.camera.lookAt(0, 0, 0);
     
-    console.log('📷 Static diorama camera positioned');
+    
   }
   
   setupRenderer() {
@@ -194,7 +194,7 @@ class SushiSceneManager {
   
   async loadAssets() {
     // We'll create procedural textures for now, but this could load actual texture files
-    console.log('📦 Loading sushi assets...');
+    
     
     // Load texture loader
     this.textureLoader = new THREE.TextureLoader();
@@ -204,7 +204,7 @@ class SushiSceneManager {
   }
   
   async createSushiModels() {
-    console.log('🍱 Creating photorealistic sushi models...');
+    
     
     // Salmon Nigiri
     this.sushiTypes.salmon = this.createSalmonNigiri();
@@ -384,7 +384,7 @@ class SushiSceneManager {
   }
   
   async createEnvironment() {
-    console.log('🏮 Creating zen environment...');
+    
     
     // Wooden table surface with enhanced grain
     const tableGeometry = new THREE.PlaneGeometry(12, 8);
@@ -651,7 +651,7 @@ class SushiSceneManager {
   }
   
   async createShojiBox() {
-    console.log('🏮 Creating traditional shoji box frame...');
+    
     
     const shojiGroup = new THREE.Group();
     
@@ -704,7 +704,7 @@ class SushiSceneManager {
   }
   
   async createWhiteOakBoard() {
-    console.log('🌳 Creating white oak cutting board...');
+    
     
     // Enhanced white oak texture
     const oakTexture = this.createWhiteOakTexture();
@@ -727,7 +727,7 @@ class SushiSceneManager {
   }
   
   async createConveyorBelt() {
-    console.log('🍣 Creating moving conveyor belt track...');
+    
     
     // Invisible conveyor track for sushi movement
     this.conveyorTrack = new THREE.Group();
@@ -855,7 +855,7 @@ class SushiSceneManager {
       this.currentSushi = null;
     }
     
-    console.log(`🍣 Added ${type} sushi to conveyor belt`);
+    
   }
   
   applyStrategicEffects(sushiObject, strategicValue, category) {

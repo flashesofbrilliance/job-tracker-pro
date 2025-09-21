@@ -6,6 +6,21 @@
     "architecture": "component-based"
   },
   
+  "server": {
+    "port": 8081,
+    "host": "0.0.0.0",
+    "type": "node",
+    "script": "dev-server-warp.js",
+    "startup": "./start-warp-compatible.sh",
+    "warp_bypass": true,
+    "endpoints": {
+      "/api/job-recommendations": "mock",
+      "/api/jobs/*": "mock"
+    },
+    "mimeTypes": ["webp", "glsl", "webm"],
+    "fallback": "python"
+  },
+  
   "development": {
     "autoReload": true,
     "versionControl": {

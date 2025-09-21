@@ -1,8 +1,8 @@
 // Service Worker for Sushi Discovery PWA
 // Provides offline functionality with smart caching strategy
 
-const CACHE_NAME = 'sushi-discovery-v1.5.0';
-const DATA_CACHE_NAME = 'sushi-data-v1.5.0';
+const CACHE_NAME = 'sushi-discovery-v2025-09-21-clean';
+const DATA_CACHE_NAME = 'sushi-data-v2025-09-21-clean';
 
 // Static assets that can be cached aggressively
 const STATIC_ASSETS = [
@@ -89,8 +89,9 @@ self.addEventListener('fetch', (event) => {
         // Otherwise fetch from network
         return fetch(event.request)
           .then((response) => {
-            // Don't cache if not a valid response
+            // Don't cache if not a valid response (including 404s)
             if (!response || response.status !== 200 || response.type !== 'basic') {
+              console.warn('🚫 Not caching failed request:', event.request.url, 'Status:', response?.status);
               return response;
             }
 

@@ -12,7 +12,7 @@ class WoodblockPatternSystem {
   }
   
   init() {
-    console.log('🎨 Initializing Japanese Woodblock Pattern System...');
+    
     this.createBasePatterns();
     this.createTexturePatterns();
     this.createDepthIndicators();

@@ -27,16 +27,67 @@ A revolutionary job tracking and discovery web app featuring **photorealistic 3D
 
 ## 🚀 Quick Start
 
+### Option 1: Warp Terminal Compatible (Recommended for Warp users)
+```bash
+./start-warp-compatible.sh
+```
+**Specifically designed for Warp terminal users** - bypasses localhost interception
+
+### Option 2: Clean Development Server 
+```bash
+./start-clean.sh
+```
+**Features:**
+- ✅ Node.js development server with API mocking
+- ✅ All asset types supported (WebP, GLSL, WebM, JSON)
+- ✅ Comprehensive 404 handling and diagnostics
+- ✅ Service worker cache management
+- ✅ Real-time health checks for all endpoints
+- ✅ Automatic server cleanup and port management
+
+### Option 2: Legacy Python Server
+```bash
+./rebuild.sh     # Basic Python http.server
+```
+
+### Option 3: NPM Scripts
 ```bash
 npm install
 npm run dev      # http://127.0.0.1:3000
-# or
 npm run serve    # http://127.0.0.1:8080
 ```
 
 **Experience the Discovery Engine:**
-- Main app: `http://localhost:8080/`
-- Sushi Discovery: `http://localhost:8080/discovery.html`
+- Sushi Discovery (Primary): `http://127.0.0.1:8080/discovery.html`
+- Main Job Tracker: `http://127.0.0.1:8080/`
+- API Endpoints: `http://127.0.0.1:8080/api/job-recommendations`
+
+### 🔧 Troubleshooting 404s & "Enable JavaScript" Errors
+
+**Problem:** Seeing "Warp You need to enable JavaScript" or 404s?
+
+**Solution for Warp Terminal Users:**
+1. **Use Warp-compatible server:** `./start-warp-compatible.sh` 
+2. **Copy/paste URL into external browser** (don't click links in Warp)
+3. **Use port 8081** instead of 8080: `http://127.0.0.1:8081/discovery.html`
+4. **Alternative:** Use `open http://127.0.0.1:8081/discovery.html`
+
+**Solution for Other Terminals:**
+1. **Use clean dev server:** `./start-clean.sh` 
+2. **Clear browser cache:** DevTools → Application → Storage → Clear Storage
+3. **Hard refresh:** Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows/Linux)
+4. **Check Node.js:** `node --version` (should be >= 14)
+
+**Root Causes:**
+- **Warp terminal intercepts localhost:8080** and shows its own "enable JavaScript" page
+- Python `http.server` can't handle API endpoints (`/api/*`)
+- Missing MIME types for WebP, GLSL, WebM assets
+- Service worker caching old 404 responses
+
+**How Warp Bypass Works:**
+- Uses port 8081 instead of 8080 (avoids Warp interception)
+- Binds to 0.0.0.0 instead of just localhost
+- Forces external browser usage instead of Warp's internal view
 
 ## 🏧 Technical Architecture
 
@@ -59,11 +110,21 @@ npm run serve    # http://127.0.0.1:8080
 - **Performance Metrics**: Real-time FPS, GPU memory usage tracking
 
 ## 🛠️ Scripts
-- `dev`: Live-reload dev server on port 3000
-- `serve`: Static server on port 8080
-- `build:discovery`: Build optimized discovery app
-- `bootstrap:ci`: Setup GitHub Pages + Environments (requires gh CLI)
-- `setup:pipeline`: Fetch CI/CD workflows from reference repo
+
+### Development
+- `npm start` or `./start-clean.sh`: Clean development server with API mocking
+- `npm run dev-server`: Node.js server only  
+- `npm run serve`: Legacy Python server
+- `./qa-health-check.sh`: Comprehensive health check and 404 diagnostics
+
+### Build & Deploy  
+- `npm run build:discovery`: Build optimized discovery app
+- `npm run bootstrap:ci`: Setup GitHub Pages + Environments (requires gh CLI)
+- `npm run setup:pipeline`: Fetch CI/CD workflows from reference repo
+
+### Testing & QA
+- `npm run test:syntax`: JavaScript syntax validation
+- `npm run api:health`: API endpoint health check
 
 ## CI/CD
 - Run to configure Environments + Pages:

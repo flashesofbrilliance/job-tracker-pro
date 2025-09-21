@@ -63,7 +63,7 @@ class MobilePerformanceManager {
 
     try {
       await Promise.allSettled(preloadPromises);
-      console.log('🚀 Critical assets preloaded');
+      
     } catch (error) {
       console.warn('⚠️ Some assets failed to preload:', error);
     }
@@ -280,7 +280,7 @@ class MobilePerformanceManager {
   // GPU-Accelerated Rendering Pipeline
   setupGPURendering() {
     if (!this.gpuAvailable.available) {
-      console.log('GPU acceleration not available, falling back to CPU rendering');
+      
       return;
     }
 
@@ -304,7 +304,7 @@ class MobilePerformanceManager {
     try {
       // Check if we have a valid WebGL context
       if (!this.gpuContext) {
-        console.log('No WebGL context available, skipping shader initialization');
+        
         return;
       }
 
