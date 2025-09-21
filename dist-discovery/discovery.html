@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset=20250920212628"UTF-8" />
-  <meta name="viewport" content=20250920212628"width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Discovery Engine</title>
-  
-  <!-- CRITICAL: DNS Prefetch for faster CDN connections -->
-  <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-  
-  <!-- CRITICAL: Preconnect to external resources -->
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   
   <!-- CRITICAL CSS: Inline above-the-fold styles for instant rendering -->
   <style>
@@ -21,25 +15,11 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
   
-  <!-- OPTIMIZED: Non-blocking CSS load with media attribute trick -->
-  <link rel="preload" href="style.css?v=0.1.0&t=20250920212628" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="style.css?v=0.1.0&t=20250920212628"></noscript>
-  
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content=20250920212628"#1a1a2e">
-  <meta name="apple-mobile-web-app-capable" content=20250920212628"yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content=20250920212628"black-translucent">
-  <meta name="apple-mobile-web-app-title" content=20250920212628"Sushi Discovery">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-  
-  <!-- Mobile Optimizations -->
-  <meta name="viewport" content=20250920212628"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=20250920212628cover">
-  <meta name="mobile-web-app-capable" content=20250920212628"yes">
-  <meta name="format-detection" content=20250920212628"telephone=no">
+  <!-- Non-blocking CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Loading Screen for better perceived performance -->
+  <!-- Loading Screen -->
   <div class="loading-screen" id="loading-screen">
     <div class="loading-spinner"></div>
   </div>
@@ -48,11 +28,11 @@
     <header class="app-header">
       <div class="header-content">
         <div class="header-left">
-          <h1 class="app-title"><i class="fas fa-compass"></i> Discovery Engine</h1>
+          <h1 class="app-title">🍣 Discovery Engine</h1>
         </div>
         <div class="header-actions">
-          <button class="btn btn--outline btn--sm" id="refresh-btn"><i class="fas fa-sync"></i> Refresh</button>
-          <a class="btn btn--secondary btn--sm" href="index.html"><i class="fas fa-home"></i> Back to App</a>
+          <button class="btn btn--outline btn--sm" id="refresh-btn">🔄 Refresh</button>
+          <a class="btn btn--secondary btn--sm" href="index.html">🏠 Back to App</a>
         </div>
       </div>
     </header>
@@ -127,7 +107,18 @@
         </div>
       </section>
       
-      <!-- 3D Sushi Diorama Scene - Lazy loaded -->
+      <!-- Sushi Conveyor Belt -->
+      <section id="sushi-conveyor-section">
+        <div id="sushi-conveyor" class="sushi-conveyor">
+          <div class="belt-track">
+            <div class="sushi-plate" id="current-sushi">
+              <div class="sushi-content">🍣</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 3D Canvas (optional) -->
       <section class="sushi-diorama-section">
         <canvas id="sushi-3d-canvas" style="width: 100%; height: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);"></canvas>
       </section>
@@ -136,19 +127,17 @@
     <!-- Analytics Section -->
     <footer class="analytics-footer collapsed">
       <div class="analytics-toggle" onclick="toggleAnalytics()">
-        <i class="fas fa-chart-line"></i>
-        <span>Analytics</span>
-        <i class="fas fa-chevron-up"></i>
+        <span>📊 Analytics</span>
       </div>
       <div class="analytics-content" id="analytics-content">
         <div class="analytics-grid">
           <div class="analytics-card">
             <h4>Learning Signals</h4>
-            <div id="signals"></div>
+            <div id="signals">Ready</div>
           </div>
           <div class="analytics-card">
             <h4>Belt Analytics</h4>
-            <div id="belt-analytics"></div>
+            <div id="belt-analytics">Active</div>
           </div>
         </div>
       </div>
@@ -157,152 +146,87 @@
     <div class="toast-container" id="toast-container"></div>
   </div>
 
-  <!-- OPTIMIZED JAVASCRIPT LOADING SEQUENCE -->
+  <!-- SIMPLIFIED JAVASCRIPT LOADING -->
   
-  <!-- Phase 1: Critical Dependencies (blocking) -->
+  <!-- Essential libraries -->
+  <script src="three.min.js"></script>
+  
+  <!-- Error-safe initialization -->
   <script>
-    // Immediate performance optimization
-    window.performance && performance.mark && performance.mark('app-start');
+    // Immediate error handling and DOM safety
+    window.addEventListener('error', function(e) {
+      console.warn('Script error caught:', e.error?.message || e.message);
+    });
     
-    // Critical polyfills and feature detection
-    if (!window.requestAnimationFrame) {
-      window.requestAnimationFrame = function(cb) { return setTimeout(cb, 16); };
-    }
-    
-    // GPU capability detection for optimal rendering path
-    window.GPU_CAPABLE = (function() {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-      return !!(gl && gl.getParameter && gl.getParameter(gl.VERSION));
-    })();
-    
-    console.log('🚀 Hardware capability detected:', { GPU: window.GPU_CAPABLE });
-  </script>
-  
-  <!-- Phase 2: Essential Libraries (Only Three.js - removed unused GSAP, Cannon.js, Tween.js) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-  
-  <!-- Phase 3: Core Application Modules (medium priority) -->
-  <script src="performance-manager.js?v=clean&t=20250920212628" defer></script>
-  <script src="discovery-core.js?v=clean&t=20250920212628" defer></script>
-  
-  <!-- Phase 4: Cache Management (New addition) -->
-  <script src="conveyor-cache-manager.js?v=clean&t=20250920212628" defer></script>
-  
-  <!-- Phase 5: 3D Scene Components (lazy loaded after critical path) -->
-  <script>
-    // Lazy load 3D components after critical rendering
-    function loadEnhancedComponents() {
-      const scripts = [
-        'sushi-scene-manager.js?v=clean&t=20250920212628',
-        'woodblock-patterns.js?v=clean&t=20250920212628'
+    // Ensure all required DOM elements exist
+    document.addEventListener('DOMContentLoaded', function() {
+      const requiredElements = [
+        'loading-screen', 'job-card', 'card-company', 'card-role', 'salary-value',
+        'fit-score-value', 'sector-value', 'location-value', 'card-tags',
+        'quick-apply', 'competition-level', 'reject-btn', 'next-btn', 'accept-btn',
+        'sushi-conveyor', 'analytics-content', 'signals', 'belt-analytics'
       ];
       
-      scripts.forEach((src, index) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.defer = true;
-        if (index === scripts.length - 1) {
-          script.onload = initialize3DScene;
+      let missingElements = [];
+      requiredElements.forEach(id => {
+        if (!document.getElementById(id)) {
+          missingElements.push(id);
+          // Create placeholder element
+          const placeholder = document.createElement('div');
+          placeholder.id = id;
+          placeholder.textContent = `[${id}]`;
+          document.body.appendChild(placeholder);
         }
-        document.head.appendChild(script);
       });
-    }
-    
-    // Initialize 3D scene after all dependencies load
-    function initialize3DScene() {
-      if (window.SushiSceneManager && window.GPU_CAPABLE) {
-        console.log('🏮 Initializing 3D scene...');
-        const canvas = document.getElementById('sushi-3d-canvas');
-        if (canvas) {
-          window.sushiScene = new SushiSceneManager(canvas);
-        }
+      
+      if (missingElements.length > 0) {
+        console.warn('Created placeholder elements:', missingElements);
       }
-    }
-    
-    // Load non-critical components after page is interactive
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(loadEnhancedComponents, 100);
-      });
-    } else {
-      setTimeout(loadEnhancedComponents, 100);
-    }
-  </script>
-  
-  <!-- Phase 6: Main Application Logic -->
-  <script src="discovery.js?v=clean&t=20250920212628" defer></script>
-  
-  <!-- Phase 7: Application Initialization -->
-  <script>
-    // Initialize core application
-    function initializeApp() {
+      
       // Hide loading screen
       const loadingScreen = document.getElementById('loading-screen');
       if (loadingScreen) {
-        loadingScreen.style.opacity = '0';
-        setTimeout(() => loadingScreen.remove(), 300);
+        setTimeout(() => {
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => loadingScreen.remove(), 300);
+        }, 500);
       }
       
-      // Initialize cache manager for smooth conveyor belt
-      if (window.ConveyorCacheManager) {
-        window.cacheManager = new ConveyorCacheManager({
-          bufferSize: 5,
-          prefetchSize: 3,
-          maxCacheSize: 20
-        });
-        
-        // Load initial job set
-        const jobIds = Array.from({length: 100}, (_, i) => `job-${i + 1}`);
-        window.cacheManager.loadInitialJobs(jobIds);
-      }
-      
-      // Initialize performance manager with hardware optimization
-      if (window.MobilePerformanceManager) {
-        window.performanceManager = new MobilePerformanceManager();
-      }
-      
-      // Performance mark
-      if (window.performance && performance.mark) {
-        performance.mark('app-ready');
-        performance.measure('app-startup', 'app-start', 'app-ready');
-      }
-      
-      console.log('🍣 Sushi Discovery Engine ready!');
-    }
+      console.log('🍣 Emergency fix DOM ready!');
+    });
     
-    // Analytics toggle function
+    // Safe analytics toggle
     function toggleAnalytics() {
       const footer = document.querySelector('.analytics-footer');
-      const chevron = document.querySelector('.analytics-toggle .fa-chevron-up');
-      
-      if (footer) footer.classList.toggle('collapsed');
-      if (chevron) {
-        chevron.className = footer?.classList.contains('collapsed') 
-          ? 'fas fa-chevron-up' 
-          : 'fas fa-chevron-down';
+      if (footer) {
+        footer.classList.toggle('collapsed');
       }
     }
     
     window.toggleAnalytics = toggleAnalytics;
-    
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeApp);
-    } else {
-      initializeApp();
-    }
   </script>
   
-  <!-- Service Worker Registration (non-blocking) -->
+  <!-- Load app scripts with error handling -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').catch(function(error) {
-          console.log('SW registration failed');
+    // Load scripts safely
+    function loadScript(src, callback) {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = callback;
+      script.onerror = () => console.warn('Failed to load:', src);
+      document.head.appendChild(script);
+    }
+    
+    // Load core scripts in sequence
+    setTimeout(() => {
+      loadScript('performance-manager.js', () => {
+        loadScript('conveyor-cache-manager.js', () => {
+          loadScript('discovery.js', () => {
+            console.log('🎯 All scripts loaded');
+          });
         });
       });
-    }
+    }, 100);
   </script>
 </body>
 </html>

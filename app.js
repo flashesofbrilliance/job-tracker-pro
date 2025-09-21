@@ -224,6 +224,9 @@ function initializeApp() {
     }
   }, 500);
   
+  // Initialize undo/redo UI state
+  updateUndoRedoButtons();
+  
   console.log('Job Search Optimizer initialized with', jobsData.length, 'roles');
 }
 

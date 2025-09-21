@@ -71,6 +71,13 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
   }
+  
+  // Block CDN requests for resources we have locally
+  if (event.request.url.includes('cdnjs.cloudflare.com/ajax/libs/three.js')) {
+    console.log('🚫 Blocking CDN Three.js request, using local version');
+    event.respondWith(fetch('./three.min.js'));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request)
