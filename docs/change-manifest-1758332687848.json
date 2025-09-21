@@ -1,0 +1,153 @@
+{
+  "timestamp": "2025-09-20T01:44:47.349Z",
+  "commit_info": {
+    "sha": "03a3587fef7d3422ed5d75cff6c16cf01b6ee88c",
+    "short_sha": "03a3587",
+    "branch": "main",
+    "author": "Zach Harris",
+    "author_email": "zharris@MacBook-Pro-8.local",
+    "message": "feat: add comprehensive deployment simulation and risk testing",
+    "date": "2025-09-19 21:35:34 -0400",
+    "remote_url": "https://github.com/flashesofbrilliance/job-tracker-pro.git"
+  },
+  "file_changes": {
+    "previous_commit": "HEAD~3",
+    "total_files_changed": 11,
+    "total_lines_added": 1466,
+    "total_lines_removed": 1,
+    "net_change": 1465,
+    "files": {
+      ".github/workflows/discovery-preview.yml": {
+        "lines_added": 102,
+        "lines_removed": 0,
+        "net_change": 102
+      },
+      "discovery-core.js": {
+        "lines_added": 102,
+        "lines_removed": 0,
+        "net_change": 102
+      },
+      "discovery.html": {
+        "lines_added": 44,
+        "lines_removed": 0,
+        "net_change": 44
+      },
+      "discovery.js": {
+        "lines_added": 124,
+        "lines_removed": 0,
+        "net_change": 124
+      },
+      "docs/RISK_MANAGEMENT.md": {
+        "lines_added": 182,
+        "lines_removed": 0,
+        "net_change": 182
+      },
+      "package.json": {
+        "lines_added": 6,
+        "lines_removed": 1,
+        "net_change": 5
+      },
+      "scripts/deployment-simulation.sh": {
+        "lines_added": 297,
+        "lines_removed": 0,
+        "net_change": 297
+      },
+      "scripts/health-check.js": {
+        "lines_added": 297,
+        "lines_removed": 0,
+        "net_change": 297
+      },
+      "scripts/preview-discovery.sh": {
+        "lines_added": 53,
+        "lines_removed": 0,
+        "net_change": 53
+      },
+      "scripts/setup-pipeline.sh": {
+        "lines_added": 0,
+        "lines_removed": 0,
+        "net_change": 0
+      },
+      "scripts/test-rollback.sh": {
+        "lines_added": 259,
+        "lines_removed": 0,
+        "net_change": 259
+      }
+    },
+    "categories": {
+      "source_code": [
+        "discovery-core.js",
+        "discovery.html",
+        "discovery.js",
+        "scripts/health-check.js"
+      ],
+      "tests": [
+        "scripts/test-rollback.sh"
+      ],
+      "documentation": [
+        "docs/RISK_MANAGEMENT.md"
+      ],
+      "configuration": [
+        "package.json"
+      ],
+      "assets": [],
+      "workflows": [
+        ".github/workflows/discovery-preview.yml"
+      ],
+      "other": [
+        "scripts/deployment-simulation.sh",
+        "scripts/preview-discovery.sh",
+        "scripts/setup-pipeline.sh"
+      ]
+    }
+  },
+  "performance_impact": {
+    "impact_level": "medium",
+    "impact_areas": [
+      "Code changes may affect performance",
+      "Configuration changes may affect system behavior"
+    ],
+    "requires_performance_testing": true,
+    "changed_files_by_category": {
+      "source_code": [
+        "discovery-core.js",
+        "discovery.html",
+        "discovery.js",
+        "scripts/health-check.js"
+      ],
+      "assets": [],
+      "configuration": [
+        "package.json"
+      ]
+    }
+  },
+  "security_impact": {
+    "security_sensitive_files": [],
+    "has_security_keywords": false,
+    "requires_security_review": false,
+    "risk_level": "low"
+  },
+  "rollback_info": {
+    "current_commit": "03a3587fef7d3422ed5d75cff6c16cf01b6ee88c",
+    "rollback_target": "HEAD~3",
+    "rollback_commands": [
+      "git checkout HEAD~3",
+      "npm run build",
+      "npm run health:check",
+      "# Verify rollback: git log --oneline -5"
+    ],
+    "rollback_steps": [
+      "Stop current deployment/traffic",
+      "Execute rollback commands",
+      "Verify application functionality",
+      "Run health checks",
+      "Monitor for issues",
+      "Update monitoring/alerting",
+      "Notify stakeholders of rollback"
+    ],
+    "validation_required": true,
+    "estimated_rollback_time": "10-15 minutes"
+  },
+  "manifest_version": "1.0.0",
+  "generated_at": "2025-09-20T01:44:47.847Z",
+  "checksum": "fa0c4b3b495f7032be7fb8c45f32cab31016e145ef650fbc44745008bfe1c387"
+}
