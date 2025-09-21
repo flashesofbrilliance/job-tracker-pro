@@ -1,0 +1,77 @@
+{
+  "name": "cache-money-bebe",
+  "version": "1.0.0",
+  "description": "💰 The ultimate caching orchestration library that makes your app fast and your cache game strong! Featuring revolving door cache strategy, payload cache strap, and intelligent cache integration for high-performance web applications. Because cache money ain't cache problems! 🚀",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "docs": "jsdoc src -r -d docs",
+    "prepublishOnly": "npm run build",
+    "size": "size-limit"
+  },
+  "keywords": [
+    "cache",
+    "caching",
+    "performance",
+    "web-performance",
+    "cache-orchestration",
+    "revolving-door-cache",
+    "payload-cache",
+    "first-paint-load",
+    "cache-integration",
+    "resource-optimization",
+    "cdn-sync",
+    "cache-strategy"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/cache-money-bebe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/cache-money-bebe/issues"
+  },
+  "homepage": "https://github.com/yourusername/cache-money-bebe#readme",
+  "devDependencies": {
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "jsdoc": "^4.0.2",
+    "rollup": "^4.9.6",
+    "size-limit": "^11.0.2"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "50 KB"
+    }
+  ],
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

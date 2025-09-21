@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍣 Sushi Discovery Engine - Complete</title>
+  
+  <!-- CRITICAL CSS: Inline above-the-fold styles for instant rendering -->
+  <style>
+    /* Critical path CSS - inline for immediate render */
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #1a1a2e; color: #fff; overflow-x: hidden; }
+    .app-container { min-height: 100vh; position: relative; }
+    .loading-screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #1a1a2e; z-index: 9999; }
+    .loading-spinner { width: 50px; height: 50px; border: 3px solid #333; border-top: 3px solid #21808d; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    /* Sushi conveyor animation */
+    .sushi-conveyor { width: 100%; height: 200px; background: linear-gradient(135deg, #2d3748, #4a5568); border-radius: 12px; position: relative; overflow: hidden; }
+    .belt-track { width: 100%; height: 60px; background: repeating-linear-gradient(90deg, #4a5568 0px, #4a5568 20px, #2d3748 20px, #2d3748 40px); position: absolute; top: 50%; transform: translateY(-50%); animation: beltMove 3s linear infinite; }
+    .sushi-plate { width: 80px; height: 80px; background: radial-gradient(circle, #f7fafc, #e2e8f0); border-radius: 50%; position: absolute; top: 50%; left: 10%; transform: translateY(-50%); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: plateMove 4s ease-in-out infinite; }
+    .sushi-content { font-size: 2.5rem; text-align: center; line-height: 80px; animation: sushiSpin 2s ease-in-out infinite; }
+    
+    @keyframes beltMove { 0% { background-position: 0px 0px; } 100% { background-position: 40px 0px; } }
+    @keyframes plateMove { 0%, 100% { left: 10%; } 50% { left: 80%; } }
+    @keyframes sushiSpin { 0%, 100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } }
+    
+    /* Job card animations */
+    .job-card { background: rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin: 20px; backdrop-filter: blur(10px); transition: all 0.3s ease; animation: cardFloat 6s ease-in-out infinite; }
+    .job-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(33, 128, 141, 0.3); }
+    
+    @keyframes cardFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+    
+    /* Interactive button animations */
+    .action-btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-weight: 600; }
+    .action-btn:hover { transform: scale(1.05); }
+    .accept-btn { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+    .reject-btn { background: linear-gradient(135deg, #f56565, #e53e3e); color: white; }
+    .next-btn { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; }
+  </style>
+  
+  <!-- Non-blocking CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loading-screen">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="app-title">🍣 Discovery Engine</h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn--outline btn--sm" id="refresh-btn">🔄 Refresh</button>
+          <a class="btn btn--secondary btn--sm" href="index.html">🏠 Back to App</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="sushi-discovery-main">
+      <!-- Job Info Display -->
+      <section class="job-info-section">
+        <div class="job-display-container">
+          <div class="job-card" id="job-card">
+            <div class="card-primary">
+              <div class="company-section">
+                <h1 class="company-name" id="card-company">Google</h1>
+                <div class="company-context">
+                  <span class="sector" id="sector-value">Tech</span>
+                  <span class="separator">•</span>
+                  <span class="location" id="location-value">San Francisco</span>
+                </div>
+              </div>
+              
+              <div class="role-section">
+                <h2 class="role-title" id="card-role">Senior Software Engineer</h2>
+                <div class="salary-range" id="salary-value">$180k - $250k</div>
+              </div>
+              
+              <div class="fit-indicator">
+                <div class="fit-score-container">
+                  <div class="fit-score" id="fit-score-value">9.2</div>
+                  <div class="fit-label">Match</div>
+                </div>
+                <div class="fit-bar">
+                  <div class="fit-fill" id="fit-bar-fill" style="width: 92%;"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-secondary">
+              <div class="skills-tags" id="card-tags">
+                <span class="skill-tag">React</span>
+                <span class="skill-tag">Node.js</span>
+                <span class="skill-tag">TypeScript</span>
+                <span class="skill-tag">AWS</span>
+              </div>
+              <div class="decision-helpers">
+                <div class="quick-stats">
+                  <div class="stat-item">
+                    <span class="stat-icon">⚡</span>
+                    <span class="stat-text" id="quick-apply">Quick Apply</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-icon">🎯</span>
+                    <span class="stat-text" id="competition-level">Medium Competition</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="action-bar">
+              <button class="action-btn reject-btn" id="reject-btn">
+                <span class="btn-icon">👎</span>
+                <span class="btn-text">Pass</span>
+                <span class="btn-key">←</span>
+              </button>
+              
+              <button class="action-btn next-btn" id="next-btn">
+                <span class="btn-icon">⏭️</span>
+                <span class="btn-text">Next</span>
+                <span class="btn-key">Space</span>
+              </button>
+              
+              <button class="action-btn accept-btn" id="accept-btn">
+                <span class="btn-icon">👍</span>
+                <span class="btn-text">Apply</span>
+                <span class="btn-key">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Sushi Conveyor Belt -->
+      <section id="sushi-conveyor-section">
+        <div id="sushi-conveyor" class="sushi-conveyor">
+          <div class="belt-track"></div>
+          <div class="sushi-plate" id="current-sushi">
+            <div class="sushi-content">🍣</div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 3D Canvas -->
+      <section class="sushi-diorama-section">
+        <canvas id="sushi-3d-canvas" style="width: 100%; height: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);"></canvas>
+      </section>
+    </main>
+    
+    <!-- Analytics Section -->
+    <footer class="analytics-footer collapsed">
+      <div class="analytics-toggle" onclick="toggleAnalytics()">
+        <span>📊 Analytics</span>
+      </div>
+      <div class="analytics-content" id="analytics-content">
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h4>Learning Signals</h4>
+            <div id="signals">Active</div>
+          </div>
+          <div class="analytics-card">
+            <h4>Belt Analytics</h4>
+            <div id="belt-analytics">Running</div>
+          </div>
+          <div class="analytics-card">
+            <h4>Cache Performance</h4>
+            <div id="cache-performance">Optimal</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <!-- COMPLETE JAVASCRIPT SYSTEM -->
+  
+  <!-- Essential libraries -->
+  <script src="three.min.js"></script>
+  
+  <!-- Revolutionary Caching System -->
+  <script src="cache-strap-bootstrap.js"></script>
+  <script src="revolving-door-cache.js"></script>
+  <script src="payload-cache-strap.js"></script>
+  <script src="cache-integration-layer.js"></script>
+  
+  <!-- Core Systems -->
+  <script src="performance-manager.js"></script>
+  <script src="conveyor-cache-manager.js"></script>
+  
+  <!-- Complete Discovery Engine -->
+  <script>
+    // Global state management
+    let currentJobIndex = 0;
+    let jobsData = [];
+    let cacheIntegration = null;
+    let conveyorManager = null;
+    let revolvingCache = null;
+    let scene = null, camera = null, renderer = null;
+    
+    // Initialize everything
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('🍣 Complete Discovery Engine initializing...');
+      
+      // Hide loading screen after initialization
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => loadingScreen.remove(), 300);
+        }
+      }, 1000);
+      
+      // Initialize revolutionary caching system
+      await initializeCachingSystem();
+      
+      // Load initial job data
+      await loadJobData();
+      
+      // Initialize 3D scene
+      await initialize3DScene();
+      
+      // Setup interactions
+      setupJobInteractions();
+      
+      // Start animations
+      startAnimations();
+      
+      console.log('✅ Complete Discovery Engine ready!');
+    });
+    
+    // Initialize the revolutionary caching system
+    async function initializeCachingSystem() {
+      console.log('🎡 Initializing Revolutionary Caching System...');
+      
+      try {
+        // Initialize Cache Integration Layer
+        cacheIntegration = new CacheIntegrationLayer({
+          conveyorBeltCycle: 3000,
+          syncMode: 'adaptive'
+        });
+        
+        // Initialize Payload Cache Strap
+        const payloadStrap = new PayloadCacheStrap({
+          fplPayloadTimeout: 2000,
+          cronInterval: 30000
+        });
+        
+        console.log('✅ Revolutionary caching system active!');
+        
+        // Update analytics
+        document.getElementById('cache-performance').textContent = 'Revolutionary';
+      } catch (error) {
+        console.warn('⚠️ Caching system fallback mode:', error);
+        document.getElementById('cache-performance').textContent = 'Fallback';
+      }
+    }
+    
+    // Load job data from API
+    async function loadJobData() {
+      console.log('📊 Loading job data...');
+      
+      try {
+        const response = await fetch('/api/job-recommendations');
+        const data = await response.json();
+        jobsData = data.jobs || [];
+        
+        if (jobsData.length > 0) {
+          displayJob(jobsData[currentJobIndex]);
+          updateSushiEmoji(jobsData[currentJobIndex]);
+        }
+        
+        console.log(`✅ Loaded ${jobsData.length} jobs`);
+      } catch (error) {
+        console.error('❌ Failed to load jobs:', error);
+        // Fallback to static data
+        jobsData = [
+          { id: "job-1", company: "Google", roleTitle: "Senior Software Engineer", sector: "Tech", location: "San Francisco", salary: "$180k - $250k", fitScore: 9.2, tags: ["React", "Node.js", "TypeScript", "AWS"] }
+        ];
+        displayJob(jobsData[0]);
+      }
+    }
+    
+    // Display job information
+    function displayJob(job) {
+      if (!job) return;
+      
+      document.getElementById('card-company').textContent = job.company;
+      document.getElementById('card-role').textContent = job.roleTitle;
+      document.getElementById('sector-value').textContent = job.sector;
+      document.getElementById('location-value').textContent = job.location;
+      document.getElementById('salary-value').textContent = job.salary;
+      document.getElementById('fit-score-value').textContent = job.fitScore;
+      document.getElementById('fit-bar-fill').style.width = `${job.fitScore * 10}%`;
+      
+      // Update tags
+      const tagsContainer = document.getElementById('card-tags');
+      tagsContainer.innerHTML = '';
+      job.tags.forEach(tag => {
+        const tagElement = document.createElement('span');
+        tagElement.className = 'skill-tag';
+        tagElement.textContent = tag;
+        tagsContainer.appendChild(tagElement);
+      });
+      
+      // Animate card appearance
+      const jobCard = document.getElementById('job-card');
+      jobCard.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        jobCard.style.transform = 'scale(1)';
+      }, 100);
+    }
+    
+    // Update sushi emoji based on job type
+    function updateSushiEmoji(job) {
+      const sushiContent = document.querySelector('.sushi-content');
+      if (!sushiContent) return;
+      
+      const sushiMap = {
+        'Tech': '🍣',
+        'Finance': '🍤',
+        'Healthcare': '🍱',
+        'Education': '🍙',
+        'default': '🍣'
+      };
+      
+      sushiContent.textContent = sushiMap[job.sector] || sushiMap.default;
+      
+      // Add pulse animation
+      sushiContent.style.animation = 'none';
+      setTimeout(() => {
+        sushiContent.style.animation = 'sushiSpin 2s ease-in-out infinite';
+      }, 10);
+    }
+    
+    // Initialize 3D scene with Three.js
+    async function initialize3DScene() {
+      console.log('🎨 Initializing 3D sushi scene...');
+      
+      const canvas = document.getElementById('sushi-3d-canvas');
+      if (!canvas || !window.THREE) {
+        console.warn('⚠️ 3D scene fallback - Three.js not available');
+        return;
+      }
+      
+      try {
+        // Scene setup
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        
+        camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        
+        // Create sushi-like geometry
+        const geometry = new THREE.BoxGeometry(1, 0.3, 0.5);
+        const material = new THREE.MeshPhongMaterial({ 
+          color: 0xff6b6b,
+          shininess: 100
+        });
+        
+        const sushiMesh = new THREE.Mesh(geometry, material);
+        scene.add(sushiMesh);
+        
+        camera.position.z = 3;
+        
+        // Animation loop
+        function animate() {
+          requestAnimationFrame(animate);
+          
+          if (sushiMesh) {
+            sushiMesh.rotation.x += 0.01;
+            sushiMesh.rotation.y += 0.02;
+          }
+          
+          renderer.render(scene, camera);
+        }
+        
+        animate();
+        console.log('✅ 3D scene initialized!');
+        
+      } catch (error) {
+        console.error('❌ 3D scene initialization failed:', error);
+        canvas.style.display = 'none';
+      }
+    }
+    
+    // Setup job interaction handlers
+    function setupJobInteractions() {
+      console.log('⚡ Setting up interactions...');
+      
+      // Next job button
+      document.getElementById('next-btn').addEventListener('click', () => {
+        if (jobsData.length === 0) return;
+        
+        currentJobIndex = (currentJobIndex + 1) % jobsData.length;
+        displayJob(jobsData[currentJobIndex]);
+        updateSushiEmoji(jobsData[currentJobIndex]);
+        
+        // Emit conveyor action event
+        const event = new CustomEvent('conveyorAction', {
+          detail: { type: 'next', currentJobIndex }
+        });
+        document.dispatchEvent(event);
+        
+        showToast('Next job loaded! 🍣');
+      });
+      
+      // Accept job button
+      document.getElementById('accept-btn').addEventListener('click', () => {
+        const currentJob = jobsData[currentJobIndex];
+        showToast(`Applied to ${currentJob?.company}! 👍`);
+        
+        // Move to next job
+        setTimeout(() => {
+          document.getElementById('next-btn').click();
+        }, 1000);
+      });
+      
+      // Reject job button
+      document.getElementById('reject-btn').addEventListener('click', () => {
+        showToast('Job passed 👎');
+        
+        // Move to next job
+        setTimeout(() => {
+          document.getElementById('next-btn').click();
+        }, 500);
+      });
+      
+      // Refresh button
+      document.getElementById('refresh-btn').addEventListener('click', async () => {
+        showToast('Refreshing jobs... 🔄');
+        await loadJobData();
+        showToast('Jobs refreshed! ✅');
+      });
+      
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+          case 'ArrowRight':
+          case ' ':
+            e.preventDefault();
+            document.getElementById('next-btn').click();
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            document.getElementById('accept-btn').click();
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            document.getElementById('reject-btn').click();
+            break;
+        }
+      });
+    }
+    
+    // Start all animations
+    function startAnimations() {
+      console.log('🎬 Starting animations...');
+      
+      // Update analytics periodically
+      setInterval(() => {
+        document.getElementById('signals').textContent = `Jobs: ${jobsData.length}`;
+        document.getElementById('belt-analytics').textContent = `Index: ${currentJobIndex + 1}`;
+      }, 2000);
+      
+      // Cache performance updates
+      setInterval(() => {
+        if (cacheIntegration) {
+          const status = cacheIntegration.getStatus();
+          document.getElementById('cache-performance').textContent = 
+            status.integrationActive ? 'Active' : 'Standby';
+        }
+      }, 5000);
+    }
+    
+    // Show toast notification
+    function showToast(message) {
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      toast.style.cssText = `
+        background: rgba(33, 128, 141, 0.9);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin: 8px 0;
+        animation: slideIn 0.3s ease;
+        backdrop-filter: blur(10px);
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+    
+    // Analytics toggle
+    function toggleAnalytics() {
+      const footer = document.querySelector('.analytics-footer');
+      if (footer) {
+        footer.classList.toggle('collapsed');
+      }
+    }
+    
+    window.toggleAnalytics = toggleAnalytics;
+    
+    // Error handling
+    window.addEventListener('error', function(e) {
+      console.warn('Script error caught:', e.error?.message || e.message);
+      showToast('⚠️ Minor error handled gracefully');
+    });
+    
+    console.log('🚀 Complete Discovery Engine script loaded!');
+  </script>
+  
+  <!-- Add some CSS animations -->
+  <style>
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+    }
+    
+    .skill-tag {
+      display: inline-block;
+      background: rgba(33, 128, 141, 0.2);
+      color: #21808d;
+      padding: 4px 12px;
+      border-radius: 16px;
+      margin: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .fit-fill {
+      height: 8px;
+      background: linear-gradient(90deg, #48bb78, #38a169);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    .fit-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+  </style>
+</body>
+</html>
