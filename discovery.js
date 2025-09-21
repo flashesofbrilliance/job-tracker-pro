@@ -2471,7 +2471,7 @@
   let sushiSceneManager = null;
   
   function initialize3DScene() {
-    const canvas = document.getElementById('sushi-canvas');
+    const canvas = document.getElementById('sushi-3d-canvas');
     if (!canvas) {
       console.warn('Canvas element not found for 3D scene');
       return false;
@@ -3071,7 +3071,32 @@
     updateKnifeSkillsDisplay();
     
     // Initialize 3D Sushi Scene
-    initialize3DScene();
+    const sceneInitialized = initialize3DScene();
+    
+    // Add continuous sushi generation for demonstration
+    if (sceneInitialized && sushiSceneManager) {
+      // Add initial test sushi
+      setTimeout(() => {
+        sushiSceneManager.displaySushi('salmon', 0.8, 'golden_sushi');
+      }, 1000);
+      
+      setTimeout(() => {
+        sushiSceneManager.displaySushi('tuna', 0.6, 'normal');
+      }, 3000);
+      
+      setTimeout(() => {
+        sushiSceneManager.displaySushi('roll', 0.7, 'quality_choice');
+      }, 5000);
+      
+      // Keep adding random sushi every few seconds for demonstration
+      setInterval(() => {
+        const types = ['salmon', 'tuna', 'roll'];
+        const categories = ['normal', 'golden_sushi', 'quality_choice'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+        sushiSceneManager.displaySushi(randomType, Math.random(), randomCategory);
+      }, 6000);
+    }
     
     render();
     

@@ -418,4 +418,6 @@ class WoodblockPatternSystem {
 // Initialize pattern system
 const woodblockPatterns = new WoodblockPatternSystem();
 
-export default WoodblockPatternSystem;
+// Make available globally
+window.WoodblockPatternSystem = WoodblockPatternSystem;
+window.woodblockPatterns = woodblockPatterns;

@@ -797,6 +797,29 @@ class SushiSceneManager {
     return texture;
   }
   
+  cloneSushiGroup(originalGroup) {
+    // Create a new group
+    const clonedGroup = new THREE.Group();
+    
+    // Clone all children
+    originalGroup.children.forEach(child => {
+      if (child.isMesh) {
+        const clonedMesh = new THREE.Mesh(
+          child.geometry.clone(),
+          child.material.clone()
+        );
+        clonedMesh.position.copy(child.position);
+        clonedMesh.rotation.copy(child.rotation);
+        clonedMesh.scale.copy(child.scale);
+        clonedMesh.castShadow = child.castShadow;
+        clonedMesh.receiveShadow = child.receiveShadow;
+        clonedGroup.add(clonedMesh);
+      }
+    });
+    
+    return clonedGroup;
+  }
+  
   displaySushi(type, strategicValue = 0.5, category = 'normal') {
     // Create new sushi on the conveyor belt
     const sushiModel = this.sushiTypes[type];
@@ -806,7 +829,7 @@ class SushiSceneManager {
     }
     
     // Clone and position sushi at the start of the belt
-    const newSushi = sushiModel.clone();
+    const newSushi = sushiModel.clone ? sushiModel.clone() : this.cloneSushiGroup(sushiModel);
     newSushi.position.set(-8, 0.5, 0); // Start from left side
     
     // Apply strategic effects
