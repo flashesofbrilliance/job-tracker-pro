@@ -72,6 +72,14 @@ class RevolvingDoorCache {
   }
   
   /**
+   * Start CDN sync pipeline (placeholder implementation)
+   */
+  startCDNSyncPipeline() {
+    console.log('🌍 Starting CDN sync pipeline...');
+    // Placeholder for CDN sync functionality
+  }
+  
+  /**
    * Setup revolving timers with phase offset
    */
   setupRevolvingTimers() {
@@ -120,6 +128,13 @@ class RevolvingDoorCache {
     
     const currentMeta = this.metadataCache.get(`segment_${this.currentCacheSegment}`);
     const previousMeta = this.metadataCache.get(`segment_${previousSegment}`);
+    
+    // Safety check to prevent undefined errors
+    if (!currentMeta || !previousMeta) {
+      console.warn('⚠️ Cache metadata missing, reinitializing...');
+      this.initializeCacheSegments();
+      return;
+    }
     
     // Update metadata
     currentMeta.isActive = true;
