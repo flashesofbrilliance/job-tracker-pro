@@ -351,7 +351,9 @@ const initialJobsData = [
         fitAnalysis: j.fitAnalysis || '',
         activityLog: [],
         dateAdded: new Date().toISOString().slice(0,10),
-        links: j.links || {}
+        links: j.links || {},
+        trust: j.trust || { network: 0, dyorNotes: [] },
+        quality: j.quality || { clarity: 0, transparency: 0, burnoutRisk: 0 }
       };
       jobsData.unshift(job);
       existing.add(job.id);
@@ -1155,6 +1157,7 @@ function createTableRow(job) {
     <td class="company-cell">${job.company}</td>
     <td class="role-cell">
       <div class="role-title">${job.roleTitle}</div>
+      ${renderMiniBadges(job)}
     </td>
     <td>
       <span class="status-badge ${job.status}">${formatStatus(job.status)}</span>
@@ -1190,6 +1193,26 @@ function createTableRow(job) {
   }
   
   return row;
+}
+
+function renderMiniBadges(job) {
+  try {
+    const trust = job.trust || {};
+    const quality = job.quality || {};
+    const bits = [];
+    if (typeof trust.network === 'number') {
+      if (trust.network >= 1) bits.push(`<span class="mini-badge trust-pos" title="Trusted network signal">🛡️</span>`);
+      else if (trust.network <= -1) bits.push(`<span class="mini-badge trust-neg" title="Network red flag">⚠️</span>`);
+    }
+    if (typeof quality.burnoutRisk === 'number' && quality.burnoutRisk >= 1) {
+      bits.push(`<span class="mini-badge burnout-high" title="Potential burnout risk">🔥</span>`);
+    }
+    if (typeof quality.transparency === 'number' && quality.transparency > 0) {
+      bits.push(`<span class="mini-badge transparency" title="Transparency signals present">✅</span>`);
+    }
+    if (!bits.length) return '';
+    return `<div class="mini-badges">${bits.join('')}</div>`;
+  } catch { return ''; }
 }
 
 // Kanban View with Fixed Drag and Drop
@@ -1235,6 +1258,7 @@ function createKanbanCard(job) {
       <span class="kanban-card-location">${job.location}</span>
       <span class="kanban-card-salary">${job.salary.split(' ')[0]}</span>
       ${job.archiveTag ? `<span class="kanban-badge" title="${job.archiveReason||job.archiveTag}">${job.archiveTag}</span>` : ''}
+      ${renderMiniBadges(job)}
     </div>
   `;
   
