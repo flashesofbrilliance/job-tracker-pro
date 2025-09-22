@@ -939,7 +939,8 @@ function renderDiscoverView() {
           <div><span class="fit-score-value ${getFitScoreClass(rec.expectedFit)}">${rec.expectedFit.toFixed(1)}</span></div>
           <div>${rec.sector}</div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button class="btn btn--sm btn--primary" data-add-idx="${idx}"><i class="fas fa-plus"></i> Add</button>
+            <button class="btn btn--sm btn--outline" title="Thumbs down" data-vote-down-idx="${idx}">👎</button>
+            <button class="btn btn--sm btn--primary" title="Thumbs up" data-vote-up-idx="${idx}">👍</button>
           </div>
         </div>
       `).join('');
@@ -951,11 +952,17 @@ function renderDiscoverView() {
           ${rows}
         </div>
       `;
-      // Bind add buttons
-      listEl.querySelectorAll('[data-add-idx]').forEach(btn => {
+      // Bind vote buttons
+      listEl.querySelectorAll('[data-vote-up-idx]').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          const idx = parseInt(e.currentTarget.getAttribute('data-add-idx'));
-          addDiscoveredRole(idx);
+          const idx = parseInt(e.currentTarget.getAttribute('data-vote-up-idx'));
+          voteRecommendation(idx, 'up');
+        });
+      });
+      listEl.querySelectorAll('[data-vote-down-idx]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.currentTarget.getAttribute('data-vote-down-idx'));
+          voteRecommendation(idx, 'down');
         });
       });
     }
@@ -1025,6 +1032,15 @@ function categorizeRejectionReason(text) {
 
 function generateRecommendations(jobs, insights, seed = 0) {
   const existingKeys = new Set(jobs.map(j => `${j.company}::${j.roleTitle}`));
+  // Load downvoted keys to suppress in future recs
+  let downKeys = new Set();
+  try {
+    const raw = localStorage.getItem('discoveryFeedback');
+    if (raw) {
+      const arr = JSON.parse(raw) || [];
+      downKeys = new Set(arr.filter(x => x && x.vote === 'down').map(x => x.key));
+    }
+  } catch {}
   const topSectors = insights.topSegments.length ? insights.topSegments.map(s => s.name) : ['Crypto','AI','FinTech','Infrastructure'];
   const catalog = getDiscoveryCatalog();
 
@@ -1032,6 +1048,7 @@ function generateRecommendations(jobs, insights, seed = 0) {
   const rand = (i) => ((Math.sin(i + seed * 1337) + 1) / 2); // deterministic but varied
   const recos = catalog
     .filter(c => !existingKeys.has(`${c.company}::${c.role}`))
+    .filter(c => !downKeys.has(`${c.company}::${c.role}`))
     .map((c, i) => {
       const secBonus = topSectors.includes(c.sector) ? 0.5 : 0.0;
       const baseFit = 7.8 + (c.baseFitAdj || 0);
@@ -1109,6 +1126,34 @@ function addDiscoveredRole(idx) {
   applyAllFilters();
   renderDashboard();
   showToast(`Added ${rec.company} — ${rec.roleTitle}`, 'success');
+}
+
+function voteRecommendation(idx, vote) {
+  const rec = discoveryState.recommendations[idx];
+  if (!rec) return;
+  try {
+    const key = `${rec.company}::${rec.roleTitle}`;
+    const now = Date.now();
+    let arr = [];
+    try { arr = JSON.parse(localStorage.getItem('discoveryFeedback')) || []; } catch {}
+    // de-dup by key (keep latest)
+    arr = arr.filter(x => x && x.key !== key);
+    arr.unshift({ key, vote, at: now });
+    localStorage.setItem('discoveryFeedback', JSON.stringify(arr.slice(0,200)));
+    if (vote === 'down') {
+      // remove from current list and refresh view
+      discoveryState.recommendations.splice(idx, 1);
+      showToast('Noted. We\'ll show fewer like this.', 'info');
+      renderDiscoverView();
+    } else {
+      // thumbs up = add to board then remove from list
+      addDiscoveredRole(idx);
+      discoveryState.recommendations.splice(idx, 1);
+      renderDiscoverView();
+    }
+  } catch (e) {
+    console.warn('vote failed', e);
+  }
 }
 
 // Table View
