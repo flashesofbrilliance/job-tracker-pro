@@ -32,6 +32,7 @@
         </div>
         <div class="header-actions">
           <button class="btn btn--outline btn--sm" id="refresh-btn">🔄 Refresh</button>
+          <button class="btn btn--outline btn--sm" id="open-zen-btn">🎛️ Studio</button>
           <a class="btn btn--secondary btn--sm" href="index.html">🏠 Back to App</a>
         </div>
       </div>
@@ -124,7 +125,7 @@
       </section>
     </main>
     
-    <!-- Analytics Section -->
+      <!-- Analytics Section -->
     <footer class="analytics-footer collapsed">
       <div class="analytics-toggle" onclick="toggleAnalytics()">
         <span>📊 Analytics</span>
@@ -144,6 +145,35 @@
     </footer>
 
     <div class="toast-container" id="toast-container"></div>
+
+    <!-- Zen Studio Mixer -->
+    <div class="zen-mixer" id="zen-mixer" hidden>
+      <header>
+        <h3>Zen Studio</h3>
+        <button class="btn btn--secondary btn--sm" id="zen-toggle">Hide</button>
+      </header>
+      <div class="control">
+        <label for="zen-glow">Zen Glow</label>
+        <span id="zen-glow-value">0.15</span>
+      </div>
+      <input type="range" id="zen-glow" min="0" max="1" step="0.01" value="0.15" />
+      <div class="control">
+        <label for="wood-grain">Wood Grain</label>
+        <span id="wood-grain-value">0.06</span>
+      </div>
+      <input type="range" id="wood-grain" min="0" max="0.5" step="0.01" value="0.06" />
+      <div class="control">
+        <label for="sakura">Sakura Pattern</label>
+        <span id="sakura-value">0.08</span>
+      </div>
+      <input type="range" id="sakura" min="0" max="0.3" step="0.01" value="0.08" />
+      <div class="row">
+        <label>
+          <input type="checkbox" id="zen-enabled" /> Enable Zen Overlays
+        </label>
+        <button class="btn btn--outline btn--sm" id="zen-reset">Reset</button>
+      </div>
+    </div>
   </div>
 
   <!-- SIMPLIFIED JAVASCRIPT LOADING -->
@@ -227,6 +257,65 @@
         });
       });
     }, 100);
+  </script>
+  
+  <!-- Zen Studio wiring (self-contained) -->
+  <script>
+    (function(){
+      const defaults = { enabled: false, glow: 0.15, wood: 0.06, sakura: 0.08 };
+      const storageKey = 'zenStudioSettings';
+
+      function loadSettings(){
+        try { return { ...defaults, ...(JSON.parse(localStorage.getItem(storageKey)) || {}) }; } catch { return { ...defaults }; }
+      }
+      function saveSettings(s){ try { localStorage.setItem(storageKey, JSON.stringify(s)); } catch {}
+      }
+      function $(id){ return document.getElementById(id); }
+
+      function applySettings(s){
+        const root = document.documentElement;
+        root.style.setProperty('--zen-glow', String(s.glow));
+        root.style.setProperty('--wood-grain-opacity', String(s.wood));
+        root.style.setProperty('--sakura-opacity', String(s.sakura));
+
+        const app = document.querySelector('.app-container');
+        const conveyor = document.getElementById('sushi-conveyor-section');
+        if (app) app.classList.toggle('zen-enabled', !!s.enabled);
+        if (conveyor) conveyor.classList.toggle('zen-wood', !!s.enabled && s.wood > 0);
+
+        const glowVal = $('zen-glow-value'); const woodVal = $('wood-grain-value'); const sakVal = $('sakura-value');
+        if (glowVal) glowVal.textContent = s.glow.toFixed(2);
+        if (woodVal) woodVal.textContent = s.wood.toFixed(2);
+        if (sakVal) sakVal.textContent = s.sakura.toFixed(2);
+        const enabled = $('zen-enabled'); if (enabled) enabled.checked = !!s.enabled;
+        const rg = $('zen-glow'); if (rg) rg.value = String(s.glow);
+        const rw = $('wood-grain'); if (rw) rw.value = String(s.wood);
+        const rs = $('sakura'); if (rs) rs.value = String(s.sakura);
+      }
+
+      function init(){
+        const openBtn = $('open-zen-btn');
+        const panel = $('zen-mixer');
+        if (!openBtn || !panel) return;
+        let settings = loadSettings();
+        applySettings(settings);
+
+        openBtn.addEventListener('click', () => { panel.hidden = !panel.hidden; });
+        const toggleBtn = $('zen-toggle'); if (toggleBtn) toggleBtn.addEventListener('click', () => { panel.hidden = true; });
+        const enabled = $('zen-enabled'); if (enabled) enabled.addEventListener('change', e => { settings.enabled = !!e.target.checked; saveSettings(settings); applySettings(settings); });
+        const rg = $('zen-glow'); if (rg) rg.addEventListener('input', e => { settings.glow = parseFloat(e.target.value || defaults.glow); saveSettings(settings); applySettings(settings); });
+        const rw = $('wood-grain'); if (rw) rw.addEventListener('input', e => { settings.wood = parseFloat(e.target.value || defaults.wood); saveSettings(settings); applySettings(settings); });
+        const rs = $('sakura'); if (rs) rs.addEventListener('input', e => { settings.sakura = parseFloat(e.target.value || defaults.sakura); saveSettings(settings); applySettings(settings); });
+        const rst = $('zen-reset'); if (rst) rst.addEventListener('click', () => { settings = { ...defaults }; saveSettings(settings); applySettings(settings); });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else { init(); }
+
+      // Also expose for external init if needed
+      window.initZenStudio = init;
+    })();
   </script>
 </body>
 </html>

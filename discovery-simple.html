@@ -57,11 +57,20 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
     
-    /* Wooden Sushi Bar Counter */
+    /* Main Layout Container */
     .sushi-bar-container {
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 40px auto;
       padding: 0 20px;
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .main-content {
+      flex: 1;
+      max-width: 700px;
     }
     
     .wooden-counter {
@@ -103,6 +112,81 @@
         0 0 0 2px rgba(139, 105, 20, 0.3);
       position: relative;
       border: 3px solid #d4a574;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .sushi-plate.swipe-yes {
+      transform: translateX(20px) rotate(5deg);
+      box-shadow: 0 15px 50px rgba(76, 175, 80, 0.4);
+      border-color: #4caf50;
+    }
+    
+    .sushi-plate.swipe-no {
+      transform: translateX(-20px) rotate(-5deg);
+      box-shadow: 0 15px 50px rgba(244, 67, 54, 0.4);
+      border-color: #f44336;
+    }
+    
+    /* Draggable Job Card */
+    .sushi-plate.draggable {
+      cursor: grab;
+      user-select: none;
+    }
+    
+    .sushi-plate.dragging {
+      cursor: grabbing;
+      z-index: 1000;
+      transform: rotate(5deg) scale(1.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Drag Target Plates */
+    .drag-targets {
+      display: flex;
+      justify-content: space-between;
+      margin: 30px 0;
+      gap: 40px;
+    }
+    
+    .drop-plate {
+      flex: 1;
+      height: 120px;
+      border-radius: 16px;
+      border: 3px dashed transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .drop-plate.yes-plate {
+      color: rgba(76, 175, 80, 0.7);
+      border-color: rgba(76, 175, 80, 0.3);
+    }
+    
+    .drop-plate.no-plate {
+      color: rgba(244, 67, 54, 0.7);
+      border-color: rgba(244, 67, 54, 0.3);
+    }
+    
+    .drop-plate.drag-over {
+      border-style: solid;
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .drop-plate.yes-plate.drag-over {
+      background: rgba(76, 175, 80, 0.1);
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .drop-plate.no-plate.drag-over {
+      background: rgba(244, 67, 54, 0.1);
+      box-shadow: 0 0 20px rgba(244, 67, 54, 0.3);
     }
     
     .job-sushi {
@@ -189,43 +273,53 @@
       margin: 16px 0;
     }
     
-    /* Sushi Conveyor Belt */
+    /* Vertical Sushi Conveyor Belt */
     .conveyor-belt {
-      background: linear-gradient(135deg, #2d3748, #4a5568);
-      height: 120px;
-      margin: 40px 0;
+      background: linear-gradient(180deg, #2d3748, #4a5568, #2d3748);
+      width: 120px;
+      height: 400px;
+      margin: 20px auto;
       border-radius: 12px;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 
+        inset 4px 0 8px rgba(0, 0, 0, 0.3),
+        inset -4px 0 8px rgba(0, 0, 0, 0.3);
     }
     
     .belt-track {
-      width: 100%;
-      height: 40px;
+      height: 100%;
+      width: 60px;
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: repeating-linear-gradient(90deg, #4a5568 0px, #4a5568 20px, #2d3748 20px, #2d3748 40px);
-      animation: beltMove 3s linear infinite;
+      left: 50%;
+      transform: translateX(-50%);
+      background: repeating-linear-gradient(0deg, #4a5568 0px, #4a5568 20px, #2d3748 20px, #2d3748 40px);
+      animation: beltMoveVertical 8s linear infinite;
     }
     
     .moving-sushi {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 2rem;
-      animation: sushiSlide 4s ease-in-out infinite;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      animation: sushiSlideVertical 12s linear infinite;
     }
     
-    @keyframes beltMove {
+    .moving-sushi:nth-child(2) { animation-delay: -3s; }
+    .moving-sushi:nth-child(3) { animation-delay: -6s; }
+    .moving-sushi:nth-child(4) { animation-delay: -9s; }
+    .moving-sushi:nth-child(5) { animation-delay: -12s; }
+    
+    @keyframes beltMoveVertical {
       0% { background-position: 0px 0px; }
-      100% { background-position: 40px 0px; }
+      100% { background-position: 0px 40px; }
     }
     
-    @keyframes sushiSlide {
-      0%, 100% { left: 5%; }
-      50% { left: 85%; }
+    @keyframes sushiSlideVertical {
+      0% { top: -10%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 110%; opacity: 0; }
     }
     
     /* Action Buttons with Japanese styling */
@@ -400,38 +494,60 @@
   </header>
 
   <div class="sushi-bar-container">
-    <div class="wooden-counter">
-      <div class="sushi-plate">
-        <div class="job-sushi" id="job-sushi">
-          <div class="loading" id="loading">
-            <div class="loading-spinner"></div>
-            Loading fresh sushi jobs...
+    <!-- Vertical Conveyor Belt on the Side -->
+    <div class="conveyor-belt">
+      <div class="belt-track"></div>
+      <div class="moving-sushi" id="moving-sushi-1">🍣</div>
+      <div class="moving-sushi" id="moving-sushi-2">🍱</div>
+      <div class="moving-sushi" id="moving-sushi-3">🍙</div>
+      <div class="moving-sushi" id="moving-sushi-4">🍤</div>
+      <div class="moving-sushi" id="moving-sushi-5">🥢</div>
+    </div>
+    
+    <!-- Main Job Card Content -->
+    <div class="main-content">
+      <div class="wooden-counter">
+        <div class="sushi-plate draggable" id="sushi-plate" draggable="true">
+          <div class="job-sushi" id="job-sushi">
+            <div class="loading" id="loading">
+              <div class="loading-spinner"></div>
+              Loading fresh sushi jobs...
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      <!-- Drag & Drop Target Plates -->
+      <div class="drag-targets">
+        <div class="drop-plate no-plate" id="no-plate">
+          👎<br>
+          <strong>PASS</strong><br>
+          <small>Drag here to reject</small>
+        </div>
+        <div class="drop-plate yes-plate" id="yes-plate">
+          👍<br>
+          <strong>APPLY</strong><br>
+          <small>Drag here to accept</small>
+        </div>
+      </div>
 
-    <!-- Animated Conveyor Belt -->
-    <div class="conveyor-belt">
-      <div class="belt-track"></div>
-      <div class="moving-sushi" id="moving-sushi">🍣</div>
-    </div>
+      <!-- Action Buttons (Backup) -->
+      <div class="action-buttons" id="action-buttons" style="display: none;">
+        <button class="sushi-btn reject-btn" onclick="rejectJob()">
+          👎 Pass
+        </button>
+        <button class="sushi-btn next-btn" onclick="nextJob()">
+          ⏭️ Next
+        </button>
+        <button class="sushi-btn accept-btn" onclick="acceptJob()">
+          👍 Apply
+        </button>
+      </div>
 
-    <!-- Action Buttons -->
-    <div class="action-buttons" id="action-buttons" style="display: none;">
-      <button class="sushi-btn reject-btn" onclick="rejectJob()">
-        👎 Pass
-      </button>
-      <button class="sushi-btn next-btn" onclick="nextJob()">
-        ⏭️ Next
-      </button>
-      <button class="sushi-btn accept-btn" onclick="acceptJob()">
-        👍 Apply
-      </button>
-    </div>
-
-    <div class="keyboard-hints">
-      Use keyboard: <span class="key">←</span> Pass · <span class="key">→</span> Next · <span class="key">↑</span> Apply · <span class="key">Space</span> Next
+      <div class="keyboard-hints">
+        🏆 <strong>Drag & Drop:</strong> Drag job card to PASS or APPLY plates<br>
+        ⌨️ <strong>Keyboard:</strong> <span class="key">↑ → YES</span> <span class="key">↓ ← NO</span> <span class="key">Space</span> Next <span class="key">R</span> Refresh
+      </div>
     </div>
   </div>
 
@@ -440,6 +556,13 @@
     let currentJobIndex = 0;
     let jobsData = [];
     let isLoading = true;
+    
+    // Pattern detection for disengagement
+    let consecutiveSkips = 0;
+    let jobStartTime = Date.now();
+    let interactionHappened = false;
+    const SKIP_THRESHOLD = 3; // Auto-reject after 3 consecutive skips
+    const TIME_THRESHOLD = 10000; // 10 seconds without interaction
 
     // Sushi types for different job sectors
     const sushiTypes = {
@@ -457,6 +580,8 @@
       console.log('🍣 Initializing Simple Sushi Discovery...');
       await loadJobs();
       setupKeyboardControls();
+      setupDragAndDrop();
+      startPatternDetection();
       console.log('✅ Simple Sushi Discovery ready!');
     }
 
@@ -487,11 +612,13 @@
       if (!job) return;
 
       const jobElement = document.getElementById('job-sushi');
-      const movingSushi = document.getElementById('moving-sushi');
+      const movingSushi = document.getElementById('moving-sushi-1');
       
-      // Update moving sushi emoji
+      // Update moving sushi emoji (safely)
       const sushiEmoji = sushiTypes[job.sector] || sushiTypes.default;
-      movingSushi.textContent = sushiEmoji;
+      if (movingSushi) {
+        movingSushi.textContent = sushiEmoji;
+      }
 
       jobElement.innerHTML = `
         <div class="job-header">
@@ -551,19 +678,29 @@
 
     function acceptJob() {
       const job = jobsData[currentJobIndex];
+      const sushiPlate = document.getElementById('sushi-plate');
+      
+      // Add visual feedback
+      sushiPlate.classList.add('swipe-yes');
       showToast(`Applied to ${job.company}! 👍`, 'success');
       
       setTimeout(() => {
+        sushiPlate.classList.remove('swipe-yes');
         nextJob();
-      }, 1000);
+      }, 800);
     }
 
     function rejectJob() {
+      const sushiPlate = document.getElementById('sushi-plate');
+      
+      // Add visual feedback
+      sushiPlate.classList.add('swipe-no');
       showToast('Job passed 👎', 'info');
       
       setTimeout(() => {
+        sushiPlate.classList.remove('swipe-no');
         nextJob();
-      }, 500);
+      }, 600);
     }
 
     function refreshJobs() {
@@ -604,23 +741,23 @@
         
         switch(e.key) {
           case 'ArrowRight':
-          case ' ':
-            e.preventDefault();
-            nextJob();
-            break;
           case 'ArrowUp':
             e.preventDefault();
-            acceptJob();
+            acceptJob(); // Right/Up = YES (positive direction)
             break;
           case 'ArrowLeft':
           case 'ArrowDown':
             e.preventDefault();
-            rejectJob();
+            rejectJob(); // Left/Down = NO (negative direction)
+            break;
+          case ' ':
+            e.preventDefault();
+            nextJob(); // Space = Next
             break;
           case 'r':
           case 'R':
             e.preventDefault();
-            refreshJobs();
+            refreshJobs(); // R = Refresh
             break;
         }
       });
@@ -649,16 +786,16 @@
       if (Math.abs(diffX) > Math.abs(diffY)) {
         // Horizontal swipe
         if (diffX > 0) {
-          nextJob(); // Swipe right = next
+          acceptJob(); // Swipe right = YES (positive)
         } else {
-          rejectJob(); // Swipe left = reject
+          rejectJob(); // Swipe left = NO (negative)
         }
       } else {
         // Vertical swipe
         if (diffY < 0) {
-          acceptJob(); // Swipe up = accept
+          acceptJob(); // Swipe up = YES (positive)
         } else {
-          rejectJob(); // Swipe down = reject
+          rejectJob(); // Swipe down = NO (negative)
         }
       }
     });

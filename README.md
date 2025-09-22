@@ -163,7 +163,7 @@ git push -u origin main
 - `gh-pages`: Automated deployment target
 
 ### 💡 **Features in Development**
-- [ ] Interactive zen studio mixer controls
+- [x] Interactive zen studio mixer controls (glow, wood grain, sakura)
 - [ ] Additional sushi varieties (uni, ikura, hamachi)
 - [ ] Advanced fish marbling/fattiness parameters
 - [ ] VR/AR sushi discovery mode
