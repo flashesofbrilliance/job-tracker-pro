@@ -86,7 +86,8 @@ const initialJobsData = [
         (filters.status && filters.status.length>0),
         (typeof filters.fitScore==='number' && filters.fitScore>0),
         (typeof filters.salary==='number' && filters.salary>150),
-        (filters.search && String(filters.search).trim().length>0)
+        (filters.search && String(filters.search).trim().length>0),
+        (!!filters.backlogOnly)
       ].filter(Boolean).length;
       countEl.textContent = String(active);
       countEl.classList.toggle('hidden', active === 0);
@@ -120,6 +121,9 @@ const initialJobsData = [
       if (search && typeof filters.search==='string') {
         search.value = filters.search;
       }
+      // Backlog only
+      const backlog = qs('backlog-only');
+      if (backlog) backlog.checked = !!filters.backlogOnly;
     } catch(e) { /* no-op */ }
   }
 
@@ -127,7 +131,7 @@ const initialJobsData = [
     try {
       const saved = localStorage.getItem('jobSearchFilters');
       if (!saved) return;
-      const filters = { status: [], fitScore: 0, salary: 150, search: '', ...JSON.parse(saved) };
+      const filters = { status: [], fitScore: 0, salary: 150, search: '', backlogOnly: false, ...JSON.parse(saved) };
       applySavedToUI(filters);
       updateFilterBadge(filters);
       // Re-apply filtering if app-level handler exists
@@ -145,7 +149,8 @@ const initialJobsData = [
           status: Array.from(document.querySelectorAll('.status-filter:checked')).map(el=>el.value),
           fitScore: parseFloat((qs('fit-score-range')||{}).value || 0) || 0,
           salary: parseInt((qs('salary-range')||{}).value || 150) || 150,
-          search: (qs('search-input')||{}).value || ''
+          search: (qs('search-input')||{}).value || '',
+          backlogOnly: !!((qs('backlog-only')||{}).checked)
         };
         updateFilterBadge(f);
       };
@@ -153,7 +158,7 @@ const initialJobsData = [
         document.addEventListener(evt, (e) => {
           const t = e.target;
           if (!t) return;
-          if (t.matches?.('.status-filter, #fit-score-range, #salary-range, #search-input')) {
+          if (t.matches?.('.status-filter, #fit-score-range, #salary-range, #search-input, #backlog-only')) {
             computeNow();
           }
         }, true);
@@ -495,7 +500,8 @@ let currentFilters = {
   status: [],
   fitScore: 0,
   salary: 150,
-  search: ''
+  search: '',
+  backlogOnly: false
 };
 let sortConfig = { key: null, direction: 'asc' };
 let charts = {};
@@ -1635,6 +1641,12 @@ function applyFilters() {
     currentFilters.salary = parseInt(salaryRange.value);
   }
   
+  // Backlog only
+  const backlog = document.getElementById('backlog-only');
+  if (backlog) {
+    currentFilters.backlogOnly = !!backlog.checked;
+  }
+  
   applyAllFilters();
   updateFilterIndicator();
   saveDataToStorage();
@@ -1669,6 +1681,12 @@ function applyAllFilters() {
       }
     }
     
+    // Backlog-only tag filter
+    if (currentFilters.backlogOnly) {
+      if (job.status !== 'rejected') return false;
+      if ((job.archiveTag || '') !== 'Backlog') return false;
+    }
+    
     return true;
   });
   
@@ -1680,7 +1698,8 @@ function clearFilters() {
     status: [],
     fitScore: 0,
     salary: 150,
-    search: ''
+    search: '',
+    backlogOnly: false
   };
   
   // Reset UI
@@ -1691,10 +1710,10 @@ function clearFilters() {
   
   const fitScoreRange = document.getElementById('fit-score-range');
   if (fitScoreRange) fitScoreRange.value = 0;
-  
   const salaryRange = document.getElementById('salary-range');
   if (salaryRange) salaryRange.value = 150;
-  
+  const backlog = document.getElementById('backlog-only');
+  if (backlog) backlog.checked = false;
   updateFitScoreLabel();
   updateSalaryLabel();
   
@@ -1708,7 +1727,8 @@ function updateFilterIndicator() {
     ...currentFilters.status,
     currentFilters.fitScore > 0 ? 'fit-score' : null,
     currentFilters.salary > 150 ? 'salary' : null,
-    currentFilters.search ? 'search' : null
+    currentFilters.search ? 'search' : null,
+    currentFilters.backlogOnly ? 'backlog' : null
   ].filter(Boolean);
   
   const countEl = document.getElementById('filter-count');
@@ -2021,7 +2041,7 @@ function handleExport() {
 }
 
 function exportToCSV(jobs) {
-  const headers = ['Company', 'Role', 'Status', 'Fit Score', 'Salary', 'Applied Date', 'Location', 'Notes', 'Tags'];
+  const headers = ['Company', 'Role', 'Status', 'Fit Score', 'Salary', 'Applied Date', 'Location', 'Notes', 'Tags', 'Archive Tag', 'Archive Reason'];
   
   const rows = jobs.map(job => [
     job.company,
@@ -2032,7 +2052,9 @@ function exportToCSV(jobs) {
     job.appliedDate || '',
     job.location,
     job.notes || '',
-    job.tags.join('; ')
+    job.tags.join('; '),
+    job.archiveTag || '',
+    job.archiveReason || ''
   ]);
   
   return [headers, ...rows].map(row => 
