@@ -39,6 +39,17 @@ jobs:
           (npm ci) || (echo "npm ci failed, falling back to npm install" && npm install)
       - name: Build
         run: npm run build
+      - name: Smoke test build artifacts
+        run: |
+          set -e
+          test -f dist/index.html
+          test -f dist/style.css
+          test -f dist/app.js
+          test -f dist/discovery.html
+          # sanity content checks
+          grep -qi '<title' dist/index.html
+          grep -qi 'class="app-container"' dist/index.html
+          echo "Smoke tests passed"
       - name: Determine environment and path
         id: env
         run: |
