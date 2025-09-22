@@ -363,6 +363,8 @@ function archiveJobWithReason(jobId) {
   if (!job) return;
   const reason = window.prompt('Why is this not a fit right now? (optional)');
   job.status = 'rejected';
+  job.archiveTag = reason && reason.trim() ? 'Backlog' : 'Archive-Pending';
+  if (reason && reason.trim()) job.archiveReason = reason.trim();
   if (reason && reason.trim()) {
     addRejectionActivity(job, reason.trim(), 'Why not (Not Started)');
   } else {
@@ -766,6 +768,27 @@ function renderDashboard() {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
   });
+
+  // Render Why‑Not summary widget
+  try {
+    const { totalReasons, top } = computeWhyNotStats();
+    const sumEl = document.getElementById('why-not-summary');
+    if (sumEl) sumEl.textContent = totalReasons > 0 ? `${totalReasons} notes` : '—';
+    const ul = document.getElementById('why-not-list');
+    if (ul) {
+      ul.innerHTML = '';
+      top.slice(0,5).forEach(({ reason, count }) => {
+        const li = document.createElement('li');
+        li.textContent = `${reason} — ${count}`;
+        ul.appendChild(li);
+      });
+      if (totalReasons === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'No feedback yet';
+        ul.appendChild(li);
+      }
+    }
+  } catch {}
 }
 
 function calculateDashboardStats() {
@@ -787,6 +810,21 @@ function calculateDashboardStats() {
     applied: statusCounts.applied || 0,
     notStarted: statusCounts['not-started'] || 0
   };
+}
+
+function computeWhyNotStats() {
+  const counts = {};
+  let total = 0;
+  for (const job of jobsData) {
+    (job.activityLog || []).forEach(a => {
+      if (a.type === 'Rejection') {
+        const r = String(a.reason || '').trim();
+        if (r) { counts[r] = (counts[r]||0) + 1; total++; }
+      }
+    });
+  }
+  const top = Object.entries(counts).map(([reason, count]) => ({ reason, count })).sort((a,b)=>b.count-a.count);
+  return { totalReasons: total, top };
 }
 
 function switchView(view) {
@@ -1096,6 +1134,7 @@ function createTableRow(job) {
     </td>
     <td>
       <span class="status-badge ${job.status}">${formatStatus(job.status)}</span>
+      ${job.archiveTag ? `<span class="status-badge muted" title="${job.archiveReason||job.archiveTag}">${job.archiveTag}</span>` : ''}
     </td>
     <td class="fit-score">
       <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore}</span>
@@ -1171,6 +1210,7 @@ function createKanbanCard(job) {
     <div class="kanban-card-meta">
       <span class="kanban-card-location">${job.location}</span>
       <span class="kanban-card-salary">${job.salary.split(' ')[0]}</span>
+      ${job.archiveTag ? `<span class="kanban-badge" title="${job.archiveReason||job.archiveTag}">${job.archiveTag}</span>` : ''}
     </div>
   `;
   
@@ -1923,6 +1963,8 @@ function handleBulkArchive() {
       const job = jobsData.find(j => j.id === jobId);
       if (job) {
         job.status = 'rejected';
+        job.archiveTag = bulkReason ? 'Backlog' : 'Archive-Pending';
+        if (bulkReason) job.archiveReason = bulkReason;
         job.activityLog.push({
           date: new Date().toISOString().split('T')[0],
           type: 'Archived',

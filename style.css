@@ -1306,6 +1306,12 @@ select.form-control {
   letter-spacing: 0.05em;
 }
 
+.status-badge.muted {
+  background-color: var(--color-secondary);
+  color: var(--color-text-secondary);
+  text-transform: none;
+}
+
 .status-badge.not-started {
   background-color: var(--color-bg-5);
   color: var(--color-info);
@@ -1515,6 +1521,15 @@ select.form-control {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.kanban-badge {
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-card-border);
+  background: var(--color-secondary);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
 }
