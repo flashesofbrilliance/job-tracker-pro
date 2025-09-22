@@ -1,0 +1,20 @@
+{
+  "envs": {
+    "dev": [],
+    "qa": [
+      {
+        "env": "qa",
+        "name": "main-16fac84",
+        "path": "env/qa/main-16fac84",
+        "commit": "16fac84",
+        "created_at": "2025-09-22T18:36:51.725Z",
+        "source": "manual",
+        "type": "build"
+      }
+    ],
+    "stage": [],
+    "prod": [],
+    "preview": []
+  },
+  "updated_at": "2025-09-22T18:36:51.726Z"
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discovery Engine</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="app-title"><i class="fas fa-compass"></i> Discovery Engine</h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn--outline btn--sm" id="refresh-btn"><i class="fas fa-sync"></i> Refresh</button>
+          <a class="btn btn--secondary btn--sm" href="index.html"><i class="fas fa-home"></i> Back to App</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <h3>Learning Signals</h3>
+          <div id="signals"></div>
+        </div>
+        <div class="analytics-card">
+          <h3>Recommended Roles</h3>
+          <div id="recos" class="table-container"></div>
+        </div>
+      </div>
+    </main>
+
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script src="discovery-core.js"></script>
+  <script src="discovery.js"></script>
+</body>
+</html>
+
