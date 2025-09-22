@@ -28,6 +28,7 @@ const outFile = getArg('out', 'api/discovered-roles.json');
 const outCsv = getArg('outCsv', 'docs/discovered-roles.csv');
 const networkFile = getArg('network', 'docs/network-trust.json');
 const archetypesFile = getArg('archetypes', 'docs/leader-archetypes.json');
+const companyMetaFile = getArg('companyMeta', 'docs/company-metadata.json');
 const limit = parseInt(getArg('limit', '0')) || 0;
 const metricsFile = getArg('metrics', 'docs/company-metrics.json');
 const verbose = !!getArg('verbose', false);
@@ -118,6 +119,17 @@ function loadLeaderArchetypes(file) {
     }
   } catch(e) { log('Failed to load archetypes', e.message); }
   return [];
+}
+
+function loadCompanyMeta(file) {
+  try {
+    const p = path.resolve(process.cwd(), file);
+    if (fs.existsSync(p)) {
+      const json = JSON.parse(fs.readFileSync(p, 'utf8'));
+      return { publicCryptoCompanies: json.publicCryptoCompanies || [] };
+    }
+  } catch(e) { log('Failed to load company meta', e.message); }
+  return { publicCryptoCompanies: [] };
 }
 
 // -------------------- Step 1: Fetch + Parse --------------------
@@ -441,6 +453,7 @@ function writeCsv(file, rows) {
     // Update company metrics with total roles detected for this source
     try { updateCompanyMetrics(metrics, s.company, parsed.length); } catch {}
     const arch = loadLeaderArchetypes(archetypesFile);
+    const companyMeta = loadCompanyMeta(companyMetaFile);
     for (const p of parsed) {
       // Derive remote/flex tag
       const text = p.rawText || '';
@@ -458,8 +471,20 @@ function writeCsv(file, rows) {
       const { momentum } = computeMomentum(metrics, s.company);
       const finalScore = clamp(0.5*fitScore + 0.3*vibeScore + 0.2*alignment + 0.2*networkTrust - 0.2*burnoutRisk + 0.1*transparencyScore + 0.1*clarityScore, 1, 10);
       const flags = antiSignals;
-      const exclude = flags.length >= 2 || vibeScore < 4.0;
-      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk, archetype, momentum });
+      // Auto-objection rule: public crypto + 5-7 years + finance/defi/tradfi or similar role/title
+      let autoObjection = false;
+      try {
+        const isPublicCrypto = companyMeta.publicCryptoCompanies.map(c=>c.toLowerCase()).includes((p.company||'').toLowerCase()) && (/crypto|web3|blockchain/i.test(p.sector||'') || /crypto|web3|blockchain/i.test(text));
+        const years57 = /(5\s*[-–to]{1,3}\s*7)\s*(\+?\s*(years|yrs))/i.test(text);
+        const financeReq = /(defi|tradfi|finance|financial|similar\s+(role|title))/i.test(text);
+        if (isPublicCrypto && years57 && financeReq) {
+          autoObjection = true;
+          flags.push('auto_objection_public_crypto_5_7_finance');
+          dyorNotes.push('autoObjection:publicCrypto57Finance');
+        }
+      } catch {}
+      const exclude = autoObjection || flags.length >= 2 || vibeScore < 4.0;
+      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk, archetype, momentum, autoObjection });
     }
   }
 
