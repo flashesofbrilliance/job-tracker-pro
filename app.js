@@ -666,6 +666,24 @@ function bindEventListeners() {
     });
   }
   
+  // Quick Backlog chip toggle
+  const backlogChip = document.getElementById('backlog-chip');
+  if (backlogChip) {
+    const syncChip = () => backlogChip.classList.toggle('is-active', !!currentFilters.backlogOnly);
+    backlogChip.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentFilters.backlogOnly = !currentFilters.backlogOnly;
+      const backlogCb = document.getElementById('backlog-only');
+      if (backlogCb) backlogCb.checked = currentFilters.backlogOnly;
+      applyAllFilters();
+      updateFilterIndicator();
+      saveDataToStorage();
+      syncChip();
+    });
+    // Initialize state on load
+    syncChip();
+  }
+  
   // Pipeline reset
   const resetPipelineBtn = document.getElementById('reset-pipeline-btn');
   if (resetPipelineBtn) {

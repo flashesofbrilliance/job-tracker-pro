@@ -448,6 +448,12 @@ pre code {
   background: var(--color-secondary);
 }
 
+/* Active state for outline chips */
+.btn--outline.is-active {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-success-rgb), 0.08);
+}
+
 .btn--sm {
   padding: var(--space-4) var(--space-12);
   font-size: var(--font-size-sm);
