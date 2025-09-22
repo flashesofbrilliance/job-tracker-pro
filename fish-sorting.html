@@ -477,6 +477,249 @@
       gap: 8px;
     }
     
+    /* Job Card Modal (Baseball Card Style) */
+    .job-card-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .job-card-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .job-card {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 25%, #2c3e50 50%, #34495e 75%, #2c3e50 100%);
+      border-radius: 15px;
+      padding: 0;
+      width: 400px;
+      max-width: 90vw;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        0 0 0 2px #17a2b8,
+        inset 0 1px 3px rgba(255, 255, 255, 0.1);
+      transform: scale(0.8) rotateY(-10deg);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .job-card-modal.show .job-card {
+      transform: scale(1) rotateY(0deg);
+    }
+    
+    .job-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(23, 162, 184, 0.1) 50%,
+        transparent 70%
+      );
+      pointer-events: none;
+      animation: cardShimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes cardShimmer {
+      0%, 100% { transform: translateX(-100%); }
+      50% { transform: translateX(100%); }
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, #17a2b8, #1c7a8a);
+      padding: 20px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+    
+    .card-fish-display {
+      font-size: 4rem;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    
+    .card-company {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .card-role {
+      font-size: 1rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    .card-body {
+      padding: 25px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .card-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .card-stat {
+      background: rgba(23, 162, 184, 0.1);
+      border: 1px solid rgba(23, 162, 184, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: #bdc3c7;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #17a2b8;
+    }
+    
+    .card-description {
+      background: rgba(52, 73, 94, 0.4);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-left: 4px solid #17a2b8;
+    }
+    
+    .card-description h4 {
+      margin: 0 0 8px 0;
+      color: #17a2b8;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .card-description p {
+      margin: 0;
+      line-height: 1.4;
+      font-size: 0.85rem;
+      color: #ecf0f1;
+    }
+    
+    .card-actions {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .card-action-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn-accept {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: white;
+    }
+    
+    .btn-accept:hover {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+    }
+    
+    .btn-reject {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+    
+    .btn-reject:hover {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .card-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+    }
+    
+    .card-close:hover {
+      background: rgba(231, 76, 60, 0.8);
+      transform: scale(1.1);
+    }
+    
+    /* Fish Item Click Hint */
+    .fish-item:hover {
+      transform: translateX(-50%) scale(1.05);
+      z-index: 150;
+    }
+    
+    .fish-item:hover .fish-emoji {
+      transform: scale(1.2);
+      filter: drop-shadow(0 4px 12px rgba(23, 162, 184, 0.6));
+    }
+    
+    .fish-item:hover::after {
+      content: '👆 Click for details';
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(23, 162, 184, 0.9);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      animation: bounce 0.5s ease infinite alternate;
+    }
+    
+    @keyframes bounce {
+      0% { transform: translateX(-50%) translateY(0); }
+      100% { transform: translateX(-50%) translateY(-3px); }
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
       .factory-floor {
@@ -500,6 +743,21 @@
         grid-template-columns: 1fr;
         gap: 15px;
         padding: 20px;
+      }
+      
+      .job-card {
+        width: 95vw;
+        margin: 10px;
+      }
+      
+      .card-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      
+      .card-actions {
+        flex-direction: column;
+        gap: 10px;
       }
     }
   </style>
@@ -614,6 +872,47 @@
     </div>
   </div>
 
+  <!-- Job Card Modal -->
+  <div class="job-card-modal" id="job-card-modal">
+    <div class="job-card" id="job-card">
+      <div class="card-close" onclick="closeJobCard()">&times;</div>
+      <div class="card-header">
+        <div class="card-fish-display" id="card-fish">🐟</div>
+        <div class="card-company" id="card-company">Company Name</div>
+        <div class="card-role" id="card-role">Job Title</div>
+      </div>
+      <div class="card-body">
+        <div class="card-stats">
+          <div class="card-stat">
+            <div class="stat-label">Sector</div>
+            <div class="stat-value" id="card-sector">--</div>
+          </div>
+          <div class="card-stat">
+            <div class="stat-label">Salary</div>
+            <div class="stat-value" id="card-salary">--</div>
+          </div>
+          <div class="card-stat">
+            <div class="stat-label">Experience</div>
+            <div class="stat-value" id="card-experience">--</div>
+          </div>
+          <div class="card-stat">
+            <div class="stat-label">Remote</div>
+            <div class="stat-value" id="card-remote">--</div>
+          </div>
+        </div>
+        
+        <div class="card-description">
+          <h4>Job Description</h4>
+          <p id="card-description">Loading job details...</p>
+        </div>
+        
+        <div class="card-actions">
+          <button class="card-action-btn btn-accept" onclick="acceptFromCard()">✅ Accept</button>
+          <button class="card-action-btn btn-reject" onclick="rejectFromCard()">❌ Reject</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loading-overlay">
@@ -650,6 +949,10 @@
     let beltSpeed = 1;
     let spawnInterval = null;
     let metricsHidden = false;
+    
+    // Job card control
+    let currentCardJob = null;
+    let currentCardJobIndex = -1;
     
     // Initialize factory
     async function initFishSortingFactory() {
@@ -721,6 +1024,7 @@
       
       document.getElementById('belt-track').appendChild(fishItem);
       setupFishDragEvents(fishItem);
+      setupFishClickEvents(fishItem);
       
       // Auto-remove (neglected)
       setTimeout(() => {
@@ -746,6 +1050,23 @@
 
       fishItem.addEventListener('dragend', (e) => {
         fishItem.classList.remove('dragging');
+      });
+    }
+    
+    // Setup fish click events for job card
+    function setupFishClickEvents(fishItem) {
+      fishItem.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const jobIndex = parseInt(fishItem.dataset.jobIndex);
+        const job = jobsData[jobIndex];
+        
+        if (job) {
+          currentCardJob = job;
+          currentCardJobIndex = jobIndex;
+          showJobCard(job);
+        }
       });
     }
 
@@ -967,6 +1288,105 @@
       }, 3000);
     }
 
+    // Show job card modal
+    function showJobCard(job) {
+      const modal = document.getElementById('job-card-modal');
+      const fishEmoji = fishMap[job.sector] || fishMap.default;
+      
+      // Populate card data
+      document.getElementById('card-fish').textContent = fishEmoji;
+      document.getElementById('card-company').textContent = job.company;
+      document.getElementById('card-role').textContent = job.roleTitle;
+      document.getElementById('card-sector').textContent = job.sector || 'General';
+      document.getElementById('card-salary').textContent = job.salary || 'Not specified';
+      document.getElementById('card-experience').textContent = job.experienceLevel || 'Any level';
+      document.getElementById('card-remote').textContent = job.remote ? 'Yes' : 'No';
+      document.getElementById('card-description').textContent = job.description || 'No description available for this position.';
+      
+      // Show modal with animation
+      modal.classList.add('show');
+      
+      // Prevent background scrolling
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Close job card modal
+    function closeJobCard() {
+      const modal = document.getElementById('job-card-modal');
+      modal.classList.remove('show');
+      
+      // Re-enable background scrolling
+      document.body.style.overflow = 'auto';
+      
+      // Clear current card data
+      currentCardJob = null;
+      currentCardJobIndex = -1;
+    }
+    
+    // Accept job from card
+    function acceptFromCard() {
+      if (currentCardJob && currentCardJobIndex >= 0) {
+        // Remove the fish item from the belt
+        const fishItem = document.querySelector(`[data-job-index="${currentCardJobIndex}"]`);
+        if (fishItem) {
+          fishItem.remove();
+        }
+        
+        // Handle the decision
+        handleFishDecisionFromCard('accepted');
+        
+        // Close the card
+        closeJobCard();
+        
+        showToast(`✅ Accepted: ${currentCardJob.company}`);
+      }
+    }
+    
+    // Reject job from card
+    function rejectFromCard() {
+      if (currentCardJob && currentCardJobIndex >= 0) {
+        // Remove the fish item from the belt
+        const fishItem = document.querySelector(`[data-job-index="${currentCardJobIndex}"]`);
+        if (fishItem) {
+          fishItem.remove();
+        }
+        
+        // Handle the decision
+        handleFishDecisionFromCard('rejected');
+        
+        // Close the card
+        closeJobCard();
+        
+        showToast(`❌ Rejected: ${currentCardJob.company}`);
+      }
+    }
+    
+    // Handle decision from card (similar to handleFishDecision but with card context)
+    function handleFishDecisionFromCard(decision) {
+      if (!currentCardJob) return;
+      
+      processingStats.processed++;
+      processingStats[decision]++;
+      
+      updateTallyDisplay();
+      updateBasketCounts();
+    }
+    
+    // Close card on background click
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('job-card-modal');
+      if (e.target === modal) {
+        closeJobCard();
+      }
+    });
+    
+    // Close card on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeJobCard();
+      }
+    });
+    
     // Reset session
     function resetSession() {
       currentJobIndex = 0;
@@ -983,6 +1403,9 @@
       updateBasketCounts();
       updateUpcomingRole();
       showToast('🔄 New batch of fish arrived!');
+      
+      // Close any open job card
+      closeJobCard();
     }
 
     // Keyboard shortcuts
