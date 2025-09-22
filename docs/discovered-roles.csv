@@ -1,4 +1,4 @@
-company,roleTitle,status,location,salary,fitScore,tags,applyUrl
-Coinbase,Director Product - Institutional Platform,not-started,Remote,$-,10,Crypto;Remote/Flex,https://www.coinbase.com/careers/director-product
-Stripe,Director Product - Institutional Platform,not-started,Remote,$-,10,FinTech;Remote/Flex,https://stripe.com/jobs/director-product
-OpenAI,Director Product - Institutional Platform,not-started,Remote,$-,10,AI;Remote/Flex,https://openai.com/careers/director-product
+company,roleTitle,status,location,salary,fitScore,tags,applyUrl,networkTrust
+Coinbase,Director Product - Institutional Platform,not-started,Remote,$-,10,Crypto;Remote/Flex,https://www.coinbase.com/careers/director-product,1
+Stripe,Director Product - Institutional Platform,not-started,Remote,$-,10,FinTech;Remote/Flex,https://stripe.com/jobs/director-product,1
+OpenAI,Director Product - Institutional Platform,not-started,Remote,$-,10,AI;Remote/Flex,https://openai.com/careers/director-product,1

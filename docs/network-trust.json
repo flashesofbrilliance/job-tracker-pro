@@ -1,0 +1,10 @@
+{
+  "trustedCompanies": ["Coinbase", "Stripe", "OpenAI", "Anthropic", "Plaid", "Ramp"],
+  "trustedLeaders": [
+    "VP Product", "Head of Product", "Director of Product",
+    "psychological safety", "blameless", "servant leadership"
+  ],
+  "redFlagCompanies": [],
+  "redFlagKeywords": ["hustle", "grind", "996", "rockstar", "ninja", "always on"]
+}
+

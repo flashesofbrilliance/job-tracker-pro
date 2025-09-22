@@ -26,6 +26,7 @@ const enableFetch = !!getArg('fetch', false) && getArg('fetch') !== 'false';
 const sourcesFile = getArg('sources', 'docs/discovery-sources.json');
 const outFile = getArg('out', 'api/discovered-roles.json');
 const outCsv = getArg('outCsv', 'docs/discovered-roles.csv');
+const networkFile = getArg('network', 'docs/network-trust.json');
 const limit = parseInt(getArg('limit', '0')) || 0;
 const verbose = !!getArg('verbose', false);
 
@@ -46,6 +47,22 @@ function loadSources(file) {
     { company: 'Stripe', sector: 'FinTech', url: 'https://stripe.com/jobs' },
     { company: 'OpenAI', sector: 'AI', url: 'https://openai.com/careers' }
   ];
+}
+
+function loadNetworkTrust(file) {
+  try {
+    const p = path.resolve(process.cwd(), file);
+    if (fs.existsSync(p)) {
+      const json = JSON.parse(fs.readFileSync(p, 'utf8'));
+      return {
+        trustedCompanies: json.trustedCompanies || [],
+        trustedLeaders: json.trustedLeaders || [],
+        redFlagCompanies: json.redFlagCompanies || [],
+        redFlagKeywords: json.redFlagKeywords || []
+      };
+    }
+  } catch (e) { log('Failed to load network trust', e.message); }
+  return { trustedCompanies: [], trustedLeaders: [], redFlagCompanies: [], redFlagKeywords: [] };
 }
 
 // -------------------- Step 1: Fetch + Parse --------------------
@@ -206,6 +223,21 @@ function computeAlignment(job) {
   return { alignment, antiSignals };
 }
 
+function computeNetworkTrust(job, trust) {
+  let score = 0; const notes = [];
+  const company = (job.company || '').toLowerCase();
+  if (trust.trustedCompanies.map(c=>c.toLowerCase()).includes(company)) { score += 1.0; notes.push('trustedCompany'); }
+  if (trust.redFlagCompanies.map(c=>c.toLowerCase()).includes(company)) { score -= 1.0; notes.push('redFlagCompany'); }
+  const text = (job.rawText || '') + ' ' + (job.roleTitle || '') + ' ' + (job.sourceUrl || '');
+  for (const leader of trust.trustedLeaders) {
+    if (new RegExp(leader, 'i').test(text)) { score += 0.5; notes.push(`leader:${leader}`); }
+  }
+  for (const kw of trust.redFlagKeywords) {
+    if (new RegExp(kw, 'i').test(text)) { score -= 0.5; notes.push(`redkw:${kw}`); }
+  }
+  return { networkTrust: score, dyorNotes: notes };
+}
+
 // -------------------- Step 4: Rank + Cluster --------------------
 function percentile(arr, p) {
   if (!arr.length) return 0;
@@ -293,7 +325,9 @@ function toJobAppObject(j) {
     fitAnalysis: j.analysis || '',
     activityLog: [],
     dateAdded: new Date().toISOString().slice(0,10),
-    links: { apply: j.applyUrl, source: j.sourceUrl }
+    links: { apply: j.applyUrl, source: j.sourceUrl },
+    trust: { network: j.networkTrust || 0, dyorNotes: j.dyorNotes || [] },
+    quality: { clarity: j.clarityScore || 0, transparency: j.transparencyScore || 0, burnoutRisk: j.burnoutRisk || 0 }
   };
 }
 
@@ -307,9 +341,9 @@ function writeCsv(file, rows) {
     const s = (v==null? '': String(v));
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
   };
-  const headers = ['company','roleTitle','status','location','salary','fitScore','tags','applyUrl'];
+  const headers = ['company','roleTitle','status','location','salary','fitScore','tags','applyUrl','networkTrust'];
   const out = [headers.join(',')].concat(rows.map(r => [
-    r.company, r.roleTitle, r.status, r.location, r.salary, r.fitScore, (r.tags||[]).join(';'), r.links?.apply || ''
+    r.company, r.roleTitle, r.status, r.location, r.salary, r.fitScore, (r.tags||[]).join(';'), r.links?.apply || '', r.trust?.network || 0
   ].map(esc).join(',')));
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, out.join('\n'));
@@ -341,13 +375,19 @@ function writeCsv(file, rows) {
       // Derive remote/flex tag
       const text = p.rawText || '';
       const remoteFlex = /(remote|telecommute|hybrid|flex)/i.test(text) ? 'Remote/Flex' : 'Onsite/Unknown';
+      // Quality/clarity/transparency/burnout signals (lightweight)
+      const clarityScore = ((/report(s)? to|scope|responsibilit(y|ies)|success metric/i.test(text)) ? 0.5 : 0) + ((/role|title|level/i.test(text)) ? 0.3 : 0);
+      const transparencyScore = (/\$\d+|compensation|salary|benefits|parental|caregiver|process|stages?/i.test(text)) ? 0.8 : 0;
+      const burnoutRisk = (/(hustle|grind|fast[- ]paced|wear many hats|rockstar|ninja|always on|996)/i.test(text)) ? 1 : 0;
       const fitScore = computeFitScore(p);
       const { vibeScore, emoji } = computeVibe(p);
       const { alignment, antiSignals } = computeAlignment(p);
-      const finalScore = clamp(0.5*fitScore + 0.3*vibeScore + 0.2*alignment, 1, 10);
+      const trustCfg = loadNetworkTrust(networkFile);
+      const { networkTrust, dyorNotes } = computeNetworkTrust(p, trustCfg);
+      const finalScore = clamp(0.5*fitScore + 0.3*vibeScore + 0.2*alignment + 0.2*networkTrust - 0.2*burnoutRisk + 0.1*transparencyScore + 0.1*clarityScore, 1, 10);
       const flags = antiSignals;
       const exclude = flags.length >= 2 || vibeScore < 4.0;
-      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude });
+      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk });
     }
   }
 
@@ -382,4 +422,3 @@ function writeCsv(file, rows) {
 
   console.log(`✔ Discovery complete: ${exportJobs.length} roles → ${outFile}`);
 })();
-

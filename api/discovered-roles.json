@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-22T17:45:42.284Z",
+  "generatedAt": "2025-09-22T17:59:27.441Z",
   "thresholds": {
     "fitP90": 10,
     "vibeP90": 6.8,
@@ -28,7 +28,14 @@
         "alignmentScore": 4.8,
         "finalScore": 8.04,
         "flags": [],
-        "exclude": false
+        "exclude": false,
+        "networkTrust": 1,
+        "dyorNotes": [
+          "trustedCompany"
+        ],
+        "clarityScore": 0,
+        "transparencyScore": 0,
+        "burnoutRisk": 0
       }
     ],
     "FinTech|Remote/Flex": [
@@ -48,7 +55,14 @@
         "alignmentScore": 4.8,
         "finalScore": 8.04,
         "flags": [],
-        "exclude": false
+        "exclude": false,
+        "networkTrust": 1,
+        "dyorNotes": [
+          "trustedCompany"
+        ],
+        "clarityScore": 0,
+        "transparencyScore": 0,
+        "burnoutRisk": 0
       }
     ],
     "AI|Remote/Flex": [
@@ -68,7 +82,14 @@
         "alignmentScore": 4.8,
         "finalScore": 8.04,
         "flags": [],
-        "exclude": false
+        "exclude": false,
+        "networkTrust": 1,
+        "dyorNotes": [
+          "trustedCompany"
+        ],
+        "clarityScore": 0,
+        "transparencyScore": 0,
+        "burnoutRisk": 0
       }
     ]
   },
@@ -107,6 +128,17 @@
       "links": {
         "apply": "https://www.coinbase.com/careers/director-product",
         "source": "https://www.coinbase.com/careers"
+      },
+      "trust": {
+        "network": 1,
+        "dyorNotes": [
+          "trustedCompany"
+        ]
+      },
+      "quality": {
+        "clarity": 0,
+        "transparency": 0,
+        "burnoutRisk": 0
       }
     },
     {
@@ -139,6 +171,17 @@
       "links": {
         "apply": "https://stripe.com/jobs/director-product",
         "source": "https://stripe.com/jobs"
+      },
+      "trust": {
+        "network": 1,
+        "dyorNotes": [
+          "trustedCompany"
+        ]
+      },
+      "quality": {
+        "clarity": 0,
+        "transparency": 0,
+        "burnoutRisk": 0
       }
     },
     {
@@ -171,6 +214,17 @@
       "links": {
         "apply": "https://openai.com/careers/director-product",
         "source": "https://openai.com/careers"
+      },
+      "trust": {
+        "network": 1,
+        "dyorNotes": [
+          "trustedCompany"
+        ]
+      },
+      "quality": {
+        "clarity": 0,
+        "transparency": 0,
+        "burnoutRisk": 0
       }
     }
   ]
