@@ -356,6 +356,7 @@ const initialJobsData = [
         quality: j.quality || { clarity: 0, transparency: 0, burnoutRisk: 0 }
       };
       jobsData.unshift(job);
+      try { pushVibeSnapshot(job, 'imported'); } catch {}
       existing.add(job.id);
       added++;
     }
@@ -1098,6 +1099,8 @@ function addDiscoveredRole(idx) {
   };
 
   jobsData.unshift(newJob);
+  // Initial vibe snapshot
+  try { pushVibeSnapshot(newJob, 'added from recommendations'); } catch {}
   saveDataToStorage();
   applyAllFilters();
   renderDashboard();
@@ -1165,7 +1168,7 @@ function createTableRow(job) {
     </td>
     <td class="fit-score">
       <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore}</span>
-      <span class="vibe-indicator">${job.vibe}</span>
+      <span class="vibe-indicator">${job.vibe} ${vibeTrendArrow(job)}</span>
     </td>
     <td class="salary-cell">${job.salary}</td>
     <td class="date-cell">${job.appliedDate ? formatDate(job.appliedDate) : '-'}</td>
@@ -1212,6 +1215,31 @@ function renderMiniBadges(job) {
     }
     if (!bits.length) return '';
     return `<div class="mini-badges">${bits.join('')}</div>`;
+  } catch { return ''; }
+}
+
+function pushVibeSnapshot(job, context) {
+  if (!job) return;
+  job.activityLog = job.activityLog || [];
+  job.activityLog.push({
+    date: new Date().toISOString().split('T')[0],
+    type: 'Vibe',
+    note: `Vibe snapshot (${context || 'event'}): ${job.vibe}`
+  });
+}
+
+function vibeTrendArrow(job) {
+  try {
+    const hist = (job.activityLog || []).filter(a => a.type === 'Vibe').slice(-3);
+    if (hist.length < 2) return '';
+    const map = { '😞': 1, '😐': 2, '😊': 3 };
+    const last = hist[hist.length - 1].note.match(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u);
+    const first = hist[0].note.match(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u);
+    const lv = last ? (map[last[0]] || 0) : 0;
+    const fv = first ? (map[first[0]] || 0) : 0;
+    if (lv > fv) return '↑';
+    if (lv < fv) return '↓';
+    return '→';
   } catch { return ''; }
 }
 
@@ -1343,6 +1371,9 @@ function handleDrop(e, newStatus) {
       type: 'Status Change',
       note: `Moved from ${formatStatus(oldStatus)} to ${formatStatus(newStatus)}`
     });
+
+    // Snapshot vibe at status change for trend over time
+    try { pushVibeSnapshot(job, `status→${newStatus}`); } catch {}
     
     // Update applied date if moving to applied status
     if (newStatus === 'applied' && !job.appliedDate) {
@@ -1592,6 +1623,7 @@ function saveJobChanges() {
   if (jobIndex === -1) return;
   
   const prevStatus = jobsData[jobIndex].status;
+  const prevVibe = jobsData[jobIndex].vibe;
   // Collect form data
   const updatedJob = {
     ...jobsData[jobIndex],
@@ -1630,6 +1662,15 @@ function saveJobChanges() {
   
   // Update the job in the array
   jobsData[jobIndex] = updatedJob;
+
+  // If vibe changed, log vibe change
+  if (updatedJob.vibe !== prevVibe) {
+    jobsData[jobIndex].activityLog.push({
+      date: new Date().toISOString().split('T')[0],
+      type: 'Vibe',
+      note: `Vibe changed ${prevVibe} → ${updatedJob.vibe}`
+    });
+  }
 
   // If status was changed to rejected, capture reason quickly
   if (prevStatus !== 'rejected' && updatedJob.status === 'rejected') {
