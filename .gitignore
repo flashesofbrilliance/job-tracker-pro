@@ -5,3 +5,14 @@ dist
 
 # local npm cache
 .npm-cache
+
+# Logs and runtime files
+*.log
+*.pid
+server.pid
+logs/
+
+# Build artifacts
+dist-discovery/
+coverage/
+.cache/
