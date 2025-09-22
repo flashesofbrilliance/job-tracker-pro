@@ -977,6 +977,17 @@ function renderDiscoverView() {
       renderDiscoverView();
     };
   }
+  // Reset feedback
+  const resetBtn = document.getElementById('reset-recos-feedback-btn');
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      try { localStorage.removeItem('discoveryFeedback'); } catch {}
+      showToast('Cleared thumbs feedback', 'info');
+      discoveryState.lastSeed++;
+      discoveryState.recommendations = generateRecommendations(jobsData, insights, discoveryState.lastSeed);
+      renderDiscoverView();
+    };
+  }
 }
 
 function analyzeLearningSignals(jobs) {
@@ -1042,6 +1053,19 @@ function generateRecommendations(jobs, insights, seed = 0) {
     }
   } catch {}
   const topSectors = insights.topSegments.length ? insights.topSegments.map(s => s.name) : ['Crypto','AI','FinTech','Infrastructure'];
+  // Apply lightweight sector bias from thumbs feedback
+  let sectorBias = {};
+  try {
+    const raw = localStorage.getItem('discoveryFeedback');
+    if (raw) {
+      const arr = JSON.parse(raw) || [];
+      arr.forEach(entry => {
+        if (!entry || !entry.sector) return;
+        const w = entry.vote === 'up' ? 1 : entry.vote === 'down' ? -1 : 0;
+        sectorBias[entry.sector] = (sectorBias[entry.sector] || 0) + w;
+      });
+    }
+  } catch {}
   const catalog = getDiscoveryCatalog();
 
   // Score candidates by sector match + not in existing + slight randomness by seed
@@ -1051,8 +1075,9 @@ function generateRecommendations(jobs, insights, seed = 0) {
     .filter(c => !downKeys.has(`${c.company}::${c.role}`))
     .map((c, i) => {
       const secBonus = topSectors.includes(c.sector) ? 0.5 : 0.0;
+      const biasBonus = Math.max(-0.3, Math.min(0.6, (sectorBias[c.sector] || 0) * 0.1));
       const baseFit = 7.8 + (c.baseFitAdj || 0);
-      const expectedFit = Math.max(6.5, Math.min(9.9, baseFit + secBonus + rand(i) * 0.6 - 0.3));
+      const expectedFit = Math.max(6.5, Math.min(9.9, baseFit + secBonus + biasBonus + rand(i) * 0.6 - 0.3));
       return {
         id: `${c.company.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${c.role.toLowerCase().replace(/[^a-z0-9]/g,'-')}`,
         company: c.company,
@@ -1138,17 +1163,21 @@ function voteRecommendation(idx, vote) {
     try { arr = JSON.parse(localStorage.getItem('discoveryFeedback')) || []; } catch {}
     // de-dup by key (keep latest)
     arr = arr.filter(x => x && x.key !== key);
-    arr.unshift({ key, vote, at: now });
+    arr.unshift({ key, vote, at: now, sector: rec.sector });
     localStorage.setItem('discoveryFeedback', JSON.stringify(arr.slice(0,200)));
     if (vote === 'down') {
       // remove from current list and refresh view
       discoveryState.recommendations.splice(idx, 1);
       showToast('Noted. We\'ll show fewer like this.', 'info');
+      // refresh with slight re-seed to reflect bias
+      discoveryState.lastSeed++;
       renderDiscoverView();
     } else {
       // thumbs up = add to board then remove from list
       addDiscoveredRole(idx);
       discoveryState.recommendations.splice(idx, 1);
+      // re-seed to favor similar
+      discoveryState.lastSeed++;
       renderDiscoverView();
     }
   } catch (e) {
