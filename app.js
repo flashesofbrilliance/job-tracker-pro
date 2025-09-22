@@ -71,6 +71,209 @@ const initialJobsData = [
   }
 ];
 
+// --- Lightweight UX Enhancements: saved filter UI + badge ---
+// Keeps the Filters panel, search, and the small counter bubble in sync with
+// any previously saved state in localStorage for a smooth reload experience.
+(function enhanceFiltersUI(){
+  function qs(id){ return document.getElementById(id); }
+  function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+
+  function updateFilterBadge(filters){
+    try {
+      const countEl = qs('filter-count');
+      if (!countEl) return;
+      const active = [
+        (filters.status && filters.status.length>0),
+        (typeof filters.fitScore==='number' && filters.fitScore>0),
+        (typeof filters.salary==='number' && filters.salary>150),
+        (filters.search && String(filters.search).trim().length>0)
+      ].filter(Boolean).length;
+      countEl.textContent = String(active);
+      countEl.classList.toggle('hidden', active === 0);
+    } catch(e) { /* no-op */ }
+  }
+
+  function applySavedToUI(filters){
+    try {
+      // Status checkboxes
+      if (Array.isArray(filters.status)) {
+        $all('.status-filter').forEach(cb => {
+          cb.checked = filters.status.includes(cb.value);
+        });
+      }
+      // Fit score
+      const fitRange = qs('fit-score-range');
+      const fitVal = qs('fit-score-value');
+      if (fitRange && typeof filters.fitScore==='number') {
+        fitRange.value = String(filters.fitScore);
+        if (fitVal) fitVal.textContent = `${filters.fitScore}+`;
+      }
+      // Salary
+      const salRange = qs('salary-range');
+      const salVal = qs('salary-value');
+      if (salRange && typeof filters.salary==='number') {
+        salRange.value = String(filters.salary);
+        if (salVal) salVal.textContent = `$${filters.salary}k+`;
+      }
+      // Search
+      const search = qs('search-input');
+      if (search && typeof filters.search==='string') {
+        search.value = filters.search;
+      }
+    } catch(e) { /* no-op */ }
+  }
+
+  function init(){
+    try {
+      const saved = localStorage.getItem('jobSearchFilters');
+      if (!saved) return;
+      const filters = { status: [], fitScore: 0, salary: 150, search: '', ...JSON.parse(saved) };
+      applySavedToUI(filters);
+      updateFilterBadge(filters);
+      // Re-apply filtering if app-level handler exists
+      if (typeof applyFilters === 'function') {
+        try { applyFilters(); } catch(e) {}
+      }
+    } catch(e) {
+      // ignore
+    }
+
+    // Keep badge live-updated when user adjusts controls
+    try {
+      const computeNow = () => {
+        const f = {
+          status: Array.from(document.querySelectorAll('.status-filter:checked')).map(el=>el.value),
+          fitScore: parseFloat((qs('fit-score-range')||{}).value || 0) || 0,
+          salary: parseInt((qs('salary-range')||{}).value || 150) || 150,
+          search: (qs('search-input')||{}).value || ''
+        };
+        updateFilterBadge(f);
+      };
+      ['input','change'].forEach(evt => {
+        document.addEventListener(evt, (e) => {
+          const t = e.target;
+          if (!t) return;
+          if (t.matches?.('.status-filter, #fit-score-range, #salary-range, #search-input')) {
+            computeNow();
+          }
+        }, true);
+      });
+    } catch(e) { /* no-op */ }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+// --- CSV Import: basic parser and merger ---
+(function enableCsvImport(){
+  function qs(id){ return document.getElementById(id); }
+  const importBtn = qs('import-btn');
+  const fileInput = qs('csv-input');
+  if (!importBtn || !fileInput) return;
+
+  importBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result || '');
+        const { rows, headers } = parseCSV(text);
+        if (!rows.length) { showToast('No rows found in CSV', 'error'); return; }
+        const added = mergeCsvRows(rows, headers);
+        // Persist and refresh views
+        if (typeof saveDataToStorage === 'function') saveDataToStorage();
+        if (typeof renderDashboard === 'function') renderDashboard();
+        if (typeof renderCurrentView === 'function') renderCurrentView();
+        showToast(`Imported ${added} jobs from CSV`, 'success');
+      } catch(err) {
+        console.error('CSV import failed', err);
+        if (typeof showToast === 'function') showToast('CSV import failed', 'error');
+      } finally {
+        fileInput.value = '';
+      }
+    };
+    reader.onerror = () => { if (typeof showToast === 'function') showToast('Failed to read file', 'error'); };
+    reader.readAsText(file);
+  });
+
+  function parseCSV(text){
+    // Simple CSV parser with basic quoted value support
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length>0);
+    if (lines.length === 0) return { headers: [], rows: [] };
+    const headers = splitCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+    const rows = lines.slice(1).map(line => splitCsvLine(line));
+    return { headers, rows };
+  }
+  function splitCsvLine(line){
+    const out = []; let cur=''; let inQ=false;
+    for (let i=0;i<line.length;i++){
+      const ch=line[i];
+      if (ch==='"'){
+        if (inQ && line[i+1]==='"'){ cur+='"'; i++; }
+        else { inQ=!inQ; }
+      } else if (ch===',' && !inQ){ out.push(cur); cur=''; }
+      else { cur+=ch; }
+    }
+    out.push(cur);
+    return out;
+  }
+
+  function mergeCsvRows(rows, headers){
+    // Expect headers like: company,roleTitle,status,location,salary,fitScore,tags
+    const idx = (name) => headers.indexOf(name.toLowerCase());
+    const iCompany=idx('company'), iRole=idx('roletitle'), iStatus=idx('status'), iLoc=idx('location'), iSalary=idx('salary'), iFit=idx('fitscore'), iTags=idx('tags');
+    let added=0;
+    rows.forEach(cols => {
+      const company = (cols[iCompany]||'').trim();
+      const roleTitle = (cols[iRole]||'').trim();
+      if (!company || !roleTitle) return;
+      const id = `${company} ${roleTitle}`.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+      if (Array.isArray(jobsData) && !jobsData.find(j=>j.id===id)){
+        const fitScore = parseFloat(cols[iFit]||'') || 0;
+        const tags = (cols[iTags]||'').split(/\s*[,;]\s*/).filter(Boolean);
+        const job = {
+          id,
+          company,
+          roleTitle,
+          location: (cols[iLoc]||'').trim() || 'Remote',
+          status: (cols[iStatus]||'not-started').trim() || 'not-started',
+          vibe: '😐',
+          fitScore: Math.max(0, Math.min(10, fitScore || 0)),
+          salary: (cols[iSalary]||'').trim() || '$-',
+          tags,
+          appliedDate: null,
+          notes: '',
+          research: { companyIntel: '', keyPeople: [], recentNews: '', competitiveAdvantage: '', challenges: '' },
+          iceBreakers: [],
+          objections: [],
+          fitAnalysis: '',
+          activityLog: [],
+          dateAdded: new Date().toISOString().slice(0,10)
+        };
+        jobsData.unshift(job);
+        added++;
+      }
+    });
+    // Refresh filtered dataset
+    if (Array.isArray(jobsData)) {
+      if (typeof applyFilters === 'function') {
+        try { applyFilters(); } catch(e) { /* ignore */ }
+      }
+    }
+    return added;
+  }
+})();
+
 // Generate remaining 48 jobs programmatically
 function generateRemainingJobs() {
   const companies = [
