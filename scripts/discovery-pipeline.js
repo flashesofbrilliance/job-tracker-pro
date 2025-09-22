@@ -27,6 +27,7 @@ const sourcesFile = getArg('sources', 'docs/discovery-sources.json');
 const outFile = getArg('out', 'api/discovered-roles.json');
 const outCsv = getArg('outCsv', 'docs/discovered-roles.csv');
 const networkFile = getArg('network', 'docs/network-trust.json');
+const archetypesFile = getArg('archetypes', 'docs/leader-archetypes.json');
 const limit = parseInt(getArg('limit', '0')) || 0;
 const verbose = !!getArg('verbose', false);
 
@@ -63,6 +64,17 @@ function loadNetworkTrust(file) {
     }
   } catch (e) { log('Failed to load network trust', e.message); }
   return { trustedCompanies: [], trustedLeaders: [], redFlagCompanies: [], redFlagKeywords: [] };
+}
+
+function loadLeaderArchetypes(file) {
+  try {
+    const p = path.resolve(process.cwd(), file);
+    if (fs.existsSync(p)) {
+      const json = JSON.parse(fs.readFileSync(p, 'utf8'));
+      return Array.isArray(json.archetypes) ? json.archetypes : [];
+    }
+  } catch(e) { log('Failed to load archetypes', e.message); }
+  return [];
 }
 
 // -------------------- Step 1: Fetch + Parse --------------------
@@ -238,6 +250,17 @@ function computeNetworkTrust(job, trust) {
   return { networkTrust: score, dyorNotes: notes };
 }
 
+function computeArchetype(job, archetypes) {
+  const text = `${job.roleTitle || ''} ${job.rawText || ''}`;
+  let best = { id: null, label: null, score: 0 };
+  for (const a of archetypes) {
+    const hits = (a.signals || []).filter(sig => new RegExp(sig, 'i').test(text)).length;
+    const score = hits > 0 ? Math.min(1, hits / 3) : 0;
+    if (score > best.score) best = { id: a.id, label: a.label, score };
+  }
+  return best;
+}
+
 // -------------------- Step 4: Rank + Cluster --------------------
 function percentile(arr, p) {
   if (!arr.length) return 0;
@@ -326,7 +349,7 @@ function toJobAppObject(j) {
     activityLog: [],
     dateAdded: new Date().toISOString().slice(0,10),
     links: { apply: j.applyUrl, source: j.sourceUrl },
-    trust: { network: j.networkTrust || 0, dyorNotes: j.dyorNotes || [] },
+    trust: { network: j.networkTrust || 0, dyorNotes: j.dyorNotes || [], archetype: j.archetype || null },
     quality: { clarity: j.clarityScore || 0, transparency: j.transparencyScore || 0, burnoutRisk: j.burnoutRisk || 0 }
   };
 }
@@ -371,6 +394,7 @@ function writeCsv(file, rows) {
     }
 
     const parsed = parseJobPostings(s.company, s.sector, s.url, html);
+    const arch = loadLeaderArchetypes(archetypesFile);
     for (const p of parsed) {
       // Derive remote/flex tag
       const text = p.rawText || '';
@@ -384,10 +408,11 @@ function writeCsv(file, rows) {
       const { alignment, antiSignals } = computeAlignment(p);
       const trustCfg = loadNetworkTrust(networkFile);
       const { networkTrust, dyorNotes } = computeNetworkTrust(p, trustCfg);
+      const archetype = computeArchetype(p, arch);
       const finalScore = clamp(0.5*fitScore + 0.3*vibeScore + 0.2*alignment + 0.2*networkTrust - 0.2*burnoutRisk + 0.1*transparencyScore + 0.1*clarityScore, 1, 10);
       const flags = antiSignals;
       const exclude = flags.length >= 2 || vibeScore < 4.0;
-      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk });
+      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk, archetype });
     }
   }
 

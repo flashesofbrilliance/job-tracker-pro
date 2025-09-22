@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-22T17:59:27.441Z",
+  "generatedAt": "2025-09-22T18:19:54.385Z",
   "thresholds": {
     "fitP90": 10,
     "vibeP90": 6.8,
@@ -35,7 +35,12 @@
         ],
         "clarityScore": 0,
         "transparencyScore": 0,
-        "burnoutRisk": 0
+        "burnoutRisk": 0,
+        "archetype": {
+          "id": "builder-operator",
+          "label": "Builder/Operator",
+          "score": 0.6666666666666666
+        }
       }
     ],
     "FinTech|Remote/Flex": [
@@ -62,7 +67,12 @@
         ],
         "clarityScore": 0,
         "transparencyScore": 0,
-        "burnoutRisk": 0
+        "burnoutRisk": 0,
+        "archetype": {
+          "id": "builder-operator",
+          "label": "Builder/Operator",
+          "score": 0.6666666666666666
+        }
       }
     ],
     "AI|Remote/Flex": [
@@ -89,7 +99,12 @@
         ],
         "clarityScore": 0,
         "transparencyScore": 0,
-        "burnoutRisk": 0
+        "burnoutRisk": 0,
+        "archetype": {
+          "id": "builder-operator",
+          "label": "Builder/Operator",
+          "score": 0.6666666666666666
+        }
       }
     ]
   },
@@ -133,7 +148,12 @@
         "network": 1,
         "dyorNotes": [
           "trustedCompany"
-        ]
+        ],
+        "archetype": {
+          "id": "builder-operator",
+          "label": "Builder/Operator",
+          "score": 0.6666666666666666
+        }
       },
       "quality": {
         "clarity": 0,
@@ -176,7 +196,12 @@
         "network": 1,
         "dyorNotes": [
           "trustedCompany"
-        ]
+        ],
+        "archetype": {
+          "id": "builder-operator",
+          "label": "Builder/Operator",
+          "score": 0.6666666666666666
+        }
       },
       "quality": {
         "clarity": 0,
@@ -219,7 +244,12 @@
         "network": 1,
         "dyorNotes": [
           "trustedCompany"
-        ]
+        ],
+        "archetype": {
+          "id": "builder-operator",
+          "label": "Builder/Operator",
+          "score": 0.6666666666666666
+        }
       },
       "quality": {
         "clarity": 0,

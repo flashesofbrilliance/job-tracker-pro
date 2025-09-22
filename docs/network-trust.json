@@ -2,9 +2,9 @@
   "trustedCompanies": ["Coinbase", "Stripe", "OpenAI", "Anthropic", "Plaid", "Ramp"],
   "trustedLeaders": [
     "VP Product", "Head of Product", "Director of Product",
-    "psychological safety", "blameless", "servant leadership"
+    "psychological safety", "blameless", "servant leadership",
+    "Scott Witt", "Robin Daniels"
   ],
   "redFlagCompanies": [],
   "redFlagKeywords": ["hustle", "grind", "996", "rockstar", "ninja", "always on"]
 }
-

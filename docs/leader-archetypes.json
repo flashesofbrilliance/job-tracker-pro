@@ -1,0 +1,22 @@
+{
+  "archetypes": [
+    {
+      "id": "builder-operator",
+      "label": "Builder/Operator",
+      "signals": [
+        "product strategy", "platform", "operational excellence",
+        "cross-functional", "engineering partnership", "outcomes", "metrics",
+        "reliability", "roadmap", "portfolio"
+      ]
+    },
+    {
+      "id": "storyteller-gtm",
+      "label": "Storyteller/GTM",
+      "signals": [
+        "go-to-market", "brand", "narrative", "storytelling",
+        "customer", "community", "evangelism", "growth marketing"
+      ]
+    }
+  ]
+}
+
