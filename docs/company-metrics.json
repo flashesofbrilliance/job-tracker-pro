@@ -1,0 +1,22 @@
+{
+  "companies": {
+    "Coinbase": [
+      {
+        "date": "2025-09-22",
+        "count": 1
+      }
+    ],
+    "Stripe": [
+      {
+        "date": "2025-09-22",
+        "count": 1
+      }
+    ],
+    "OpenAI": [
+      {
+        "date": "2025-09-22",
+        "count": 1
+      }
+    ]
+  }
+}

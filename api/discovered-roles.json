@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-22T18:19:54.385Z",
+  "generatedAt": "2025-09-22T18:29:54.877Z",
   "thresholds": {
     "fitP90": 10,
     "vibeP90": 6.8,
@@ -40,7 +40,8 @@
           "id": "builder-operator",
           "label": "Builder/Operator",
           "score": 0.6666666666666666
-        }
+        },
+        "momentum": "flat"
       }
     ],
     "FinTech|Remote/Flex": [
@@ -72,7 +73,8 @@
           "id": "builder-operator",
           "label": "Builder/Operator",
           "score": 0.6666666666666666
-        }
+        },
+        "momentum": "flat"
       }
     ],
     "AI|Remote/Flex": [
@@ -104,7 +106,8 @@
           "id": "builder-operator",
           "label": "Builder/Operator",
           "score": 0.6666666666666666
-        }
+        },
+        "momentum": "flat"
       }
     ]
   },
@@ -158,7 +161,8 @@
       "quality": {
         "clarity": 0,
         "transparency": 0,
-        "burnoutRisk": 0
+        "burnoutRisk": 0,
+        "momentum": "flat"
       }
     },
     {
@@ -206,7 +210,8 @@
       "quality": {
         "clarity": 0,
         "transparency": 0,
-        "burnoutRisk": 0
+        "burnoutRisk": 0,
+        "momentum": "flat"
       }
     },
     {
@@ -254,7 +259,8 @@
       "quality": {
         "clarity": 0,
         "transparency": 0,
-        "burnoutRisk": 0
+        "burnoutRisk": 0,
+        "momentum": "flat"
       }
     }
   ]

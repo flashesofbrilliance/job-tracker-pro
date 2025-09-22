@@ -29,6 +29,7 @@ const outCsv = getArg('outCsv', 'docs/discovered-roles.csv');
 const networkFile = getArg('network', 'docs/network-trust.json');
 const archetypesFile = getArg('archetypes', 'docs/leader-archetypes.json');
 const limit = parseInt(getArg('limit', '0')) || 0;
+const metricsFile = getArg('metrics', 'docs/company-metrics.json');
 const verbose = !!getArg('verbose', false);
 
 function log(...m) { if (verbose) console.log('[discover]', ...m); }
@@ -64,6 +65,48 @@ function loadNetworkTrust(file) {
     }
   } catch (e) { log('Failed to load network trust', e.message); }
   return { trustedCompanies: [], trustedLeaders: [], redFlagCompanies: [], redFlagKeywords: [] };
+}
+
+function loadCompanyMetrics(file) {
+  try {
+    const p = path.resolve(process.cwd(), file);
+    if (fs.existsSync(p)) {
+      return JSON.parse(fs.readFileSync(p, 'utf8'));
+    }
+  } catch (e) { /* ignore */ }
+  return { companies: {} };
+}
+
+function saveCompanyMetrics(file, data) {
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  } catch (e) { /* ignore */ }
+}
+
+function updateCompanyMetrics(metrics, company, count) {
+  const key = String(company || 'Unknown');
+  const today = new Date().toISOString().slice(0,10);
+  metrics.companies[key] = metrics.companies[key] || [];
+  const arr = metrics.companies[key];
+  if (!arr.length || arr[arr.length-1].date !== today) {
+    arr.push({ date: today, count });
+    if (arr.length > 30) arr.shift();
+  } else {
+    arr[arr.length-1].count = count;
+  }
+}
+
+function computeMomentum(metrics, company) {
+  const arr = (metrics.companies[String(company || 'Unknown')] || []);
+  if (arr.length < 2) return { momentum: 'flat', delta: 0 };
+  const a = arr[arr.length-2].count;
+  const b = arr[arr.length-1].count;
+  if (a === 0) return { momentum: b>0 ? 'up' : 'flat', delta: 1 };
+  const change = (b - a) / a;
+  if (change > 0.1) return { momentum: 'up', delta: change };
+  if (change < -0.1) return { momentum: 'down', delta: change };
+  return { momentum: 'flat', delta: change };
 }
 
 function loadLeaderArchetypes(file) {
@@ -350,7 +393,7 @@ function toJobAppObject(j) {
     dateAdded: new Date().toISOString().slice(0,10),
     links: { apply: j.applyUrl, source: j.sourceUrl },
     trust: { network: j.networkTrust || 0, dyorNotes: j.dyorNotes || [], archetype: j.archetype || null },
-    quality: { clarity: j.clarityScore || 0, transparency: j.transparencyScore || 0, burnoutRisk: j.burnoutRisk || 0 }
+    quality: { clarity: j.clarityScore || 0, transparency: j.transparencyScore || 0, burnoutRisk: j.burnoutRisk || 0, momentum: j.momentum || 'flat' }
   };
 }
 
@@ -377,6 +420,7 @@ function writeCsv(file, rows) {
   const sources = loadSources(sourcesFile);
   const all = [];
   log('Sources:', sources.length);
+  const metrics = loadCompanyMetrics(metricsFile);
   for (const s of sources.slice(0, limit || sources.length)) {
     let html = '';
     if (enableFetch) {
@@ -394,6 +438,8 @@ function writeCsv(file, rows) {
     }
 
     const parsed = parseJobPostings(s.company, s.sector, s.url, html);
+    // Update company metrics with total roles detected for this source
+    try { updateCompanyMetrics(metrics, s.company, parsed.length); } catch {}
     const arch = loadLeaderArchetypes(archetypesFile);
     for (const p of parsed) {
       // Derive remote/flex tag
@@ -409,10 +455,11 @@ function writeCsv(file, rows) {
       const trustCfg = loadNetworkTrust(networkFile);
       const { networkTrust, dyorNotes } = computeNetworkTrust(p, trustCfg);
       const archetype = computeArchetype(p, arch);
+      const { momentum } = computeMomentum(metrics, s.company);
       const finalScore = clamp(0.5*fitScore + 0.3*vibeScore + 0.2*alignment + 0.2*networkTrust - 0.2*burnoutRisk + 0.1*transparencyScore + 0.1*clarityScore, 1, 10);
       const flags = antiSignals;
       const exclude = flags.length >= 2 || vibeScore < 4.0;
-      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk, archetype });
+      all.push({ ...p, remoteFlex, fitScore, vibeNumeric: vibeScore, vibeEmoji: emoji, alignmentScore: alignment, finalScore, flags, exclude, networkTrust, dyorNotes, clarityScore, transparencyScore, burnoutRisk, archetype, momentum });
     }
   }
 
@@ -435,6 +482,8 @@ function writeCsv(file, rows) {
 
   // Step 8: export
   const exportJobs = top.map(toJobAppObject);
+  // Persist updated metrics
+  saveCompanyMetrics(metricsFile, metrics);
   writeJson(outFile, {
     generatedAt: new Date().toISOString(),
     thresholds,

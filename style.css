@@ -1560,6 +1560,9 @@ select.form-control {
 .mini-badge.trust-neg { border-color: rgba(var(--color-error-rgb), 0.5); }
 .mini-badge.burnout-high { border-color: rgba(var(--color-warning-rgb), 0.6); }
 .mini-badge.transparency { border-color: rgba(var(--color-info-rgb), 0.6); }
+.mini-badge.archetype { border-color: rgba(var(--color-info-rgb), 0.5); font-weight: var(--font-weight-medium); }
+.mini-badge.momentum-up { border-color: rgba(var(--color-success-rgb), 0.6); }
+.mini-badge.momentum-down { border-color: rgba(var(--color-error-rgb), 0.6); }
 
 .kanban-card-salary {
   font-weight: var(--font-weight-medium);

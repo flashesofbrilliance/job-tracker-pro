@@ -87,7 +87,8 @@ const initialJobsData = [
         (typeof filters.fitScore==='number' && filters.fitScore>0),
         (typeof filters.salary==='number' && filters.salary>150),
         (filters.search && String(filters.search).trim().length>0),
-        (!!filters.backlogOnly)
+        (!!filters.backlogOnly),
+        (filters.archetype && String(filters.archetype).length>0)
       ].filter(Boolean).length;
       countEl.textContent = String(active);
       countEl.classList.toggle('hidden', active === 0);
@@ -124,6 +125,8 @@ const initialJobsData = [
       // Backlog only
       const backlog = qs('backlog-only');
       if (backlog) backlog.checked = !!filters.backlogOnly;
+      const archSel = qs('archetype-filter');
+      if (archSel && typeof filters.archetype==='string') archSel.value = filters.archetype;
     } catch(e) { /* no-op */ }
   }
 
@@ -131,7 +134,7 @@ const initialJobsData = [
     try {
       const saved = localStorage.getItem('jobSearchFilters');
       if (!saved) return;
-      const filters = { status: [], fitScore: 0, salary: 150, search: '', backlogOnly: false, ...JSON.parse(saved) };
+      const filters = { status: [], fitScore: 0, salary: 150, search: '', backlogOnly: false, archetype: '', ...JSON.parse(saved) };
       applySavedToUI(filters);
       updateFilterBadge(filters);
       // Re-apply filtering if app-level handler exists
@@ -504,7 +507,8 @@ let currentFilters = {
   fitScore: 0,
   salary: 150,
   search: '',
-  backlogOnly: false
+  backlogOnly: false,
+  archetype: ''
 };
 let sortConfig = { key: null, direction: 'asc' };
 let charts = {};
@@ -1198,7 +1202,7 @@ function createTableRow(job) {
   return row;
 }
 
-function renderMiniBadges(job) {
+  function renderMiniBadges(job) {
   try {
     const trust = job.trust || {};
     const quality = job.quality || {};
@@ -1213,10 +1217,20 @@ function renderMiniBadges(job) {
     if (typeof quality.transparency === 'number' && quality.transparency > 0) {
       bits.push(`<span class="mini-badge transparency" title="Transparency signals present">✅</span>`);
     }
+    // Archetype label
+    const arch = (job.trust && job.trust.archetype) || null;
+    if (arch && arch.id) {
+      const short = arch.id === 'builder-operator' ? 'BO' : arch.id === 'storyteller-gtm' ? 'GTM' : 'ARC';
+      bits.push(`<span class="mini-badge archetype" title="Archetype: ${arch.label || arch.id}">${short}</span>`);
+    }
+    // Momentum
+    const mom = job.quality && job.quality.momentum;
+    if (mom === 'up') bits.push(`<span class="mini-badge momentum-up" title="Hiring momentum up">↗︎</span>`);
+    if (mom === 'down') bits.push(`<span class="mini-badge momentum-down" title="Hiring momentum down">↘︎</span>`);
     if (!bits.length) return '';
     return `<div class="mini-badges">${bits.join('')}</div>`;
   } catch { return ''; }
-}
+  }
 
 function pushVibeSnapshot(job, context) {
   if (!job) return;
@@ -1729,6 +1743,9 @@ function applyFilters() {
   if (backlog) {
     currentFilters.backlogOnly = !!backlog.checked;
   }
+  // Archetype
+  const archSel = document.getElementById('archetype-filter');
+  if (archSel) currentFilters.archetype = archSel.value || '';
   
   applyAllFilters();
   updateFilterIndicator();
@@ -1769,6 +1786,11 @@ function applyAllFilters() {
       if (job.status !== 'rejected') return false;
       if ((job.archiveTag || '') !== 'Backlog') return false;
     }
+    // Archetype filter on imported jobs
+    if (currentFilters.archetype) {
+      const id = job.trust && job.trust.archetype && job.trust.archetype.id;
+      if (id !== currentFilters.archetype) return false;
+    }
     
     return true;
   });
@@ -1782,7 +1804,8 @@ function clearFilters() {
     fitScore: 0,
     salary: 150,
     search: '',
-    backlogOnly: false
+    backlogOnly: false,
+    archetype: ''
   };
   
   // Reset UI
@@ -1797,6 +1820,8 @@ function clearFilters() {
   if (salaryRange) salaryRange.value = 150;
   const backlog = document.getElementById('backlog-only');
   if (backlog) backlog.checked = false;
+  const archSel = document.getElementById('archetype-filter');
+  if (archSel) archSel.value = '';
   updateFitScoreLabel();
   updateSalaryLabel();
   
