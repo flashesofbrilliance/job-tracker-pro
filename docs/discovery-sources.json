@@ -1,0 +1,8 @@
+{
+  "targets": [
+    { "company": "Coinbase", "sector": "Crypto", "url": "https://www.coinbase.com/careers" },
+    { "company": "Stripe",   "sector": "FinTech", "url": "https://stripe.com/jobs" },
+    { "company": "OpenAI",   "sector": "AI",      "url": "https://openai.com/careers" }
+  ]
+}
+

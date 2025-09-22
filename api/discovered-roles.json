@@ -1,0 +1,177 @@
+{
+  "generatedAt": "2025-09-22T17:45:42.284Z",
+  "thresholds": {
+    "fitP90": 10,
+    "vibeP90": 6.8,
+    "alignP90": 4.8
+  },
+  "totals": {
+    "parsed": 3,
+    "eligible": 3,
+    "exported": 3
+  },
+  "clusters": {
+    "Crypto|Remote/Flex": [
+      {
+        "company": "Coinbase",
+        "sector": "Crypto",
+        "sourceUrl": "https://www.coinbase.com/careers",
+        "applyUrl": "https://www.coinbase.com/careers/director-product",
+        "roleTitle": "Director Product - Institutional Platform",
+        "location": "Remote",
+        "salary": "",
+        "rawText": "Lead cross-functional teams in regulated markets to deliver outcome-driven strategy for enterprise clients. Flexible/remote with strong boundaries and family support.",
+        "remoteFlex": "Remote/Flex",
+        "fitScore": 10,
+        "vibeNumeric": 6.8,
+        "vibeEmoji": "😐",
+        "alignmentScore": 4.8,
+        "finalScore": 8.04,
+        "flags": [],
+        "exclude": false
+      }
+    ],
+    "FinTech|Remote/Flex": [
+      {
+        "company": "Stripe",
+        "sector": "FinTech",
+        "sourceUrl": "https://stripe.com/jobs",
+        "applyUrl": "https://stripe.com/jobs/director-product",
+        "roleTitle": "Director Product - Institutional Platform",
+        "location": "Remote",
+        "salary": "",
+        "rawText": "Lead cross-functional teams in regulated markets to deliver outcome-driven strategy for enterprise clients. Flexible/remote with strong boundaries and family support.",
+        "remoteFlex": "Remote/Flex",
+        "fitScore": 10,
+        "vibeNumeric": 6.8,
+        "vibeEmoji": "😐",
+        "alignmentScore": 4.8,
+        "finalScore": 8.04,
+        "flags": [],
+        "exclude": false
+      }
+    ],
+    "AI|Remote/Flex": [
+      {
+        "company": "OpenAI",
+        "sector": "AI",
+        "sourceUrl": "https://openai.com/careers",
+        "applyUrl": "https://openai.com/careers/director-product",
+        "roleTitle": "Director Product - Institutional Platform",
+        "location": "Remote",
+        "salary": "",
+        "rawText": "Lead cross-functional teams in regulated markets to deliver outcome-driven strategy for enterprise clients. Flexible/remote with strong boundaries and family support.",
+        "remoteFlex": "Remote/Flex",
+        "fitScore": 10,
+        "vibeNumeric": 6.8,
+        "vibeEmoji": "😐",
+        "alignmentScore": 4.8,
+        "finalScore": 8.04,
+        "flags": [],
+        "exclude": false
+      }
+    ]
+  },
+  "recommendations": {
+    "appTargetsPerWeek": 5,
+    "note": "Tune targets based on conversion; celebrate consistent top-decile matches."
+  },
+  "jobs": [
+    {
+      "id": "coinbase-director-product-institutional-platform",
+      "company": "Coinbase",
+      "roleTitle": "Director Product - Institutional Platform",
+      "location": "Remote",
+      "status": "not-started",
+      "vibe": "😐",
+      "fitScore": 10,
+      "salary": "$-",
+      "tags": [
+        "Crypto",
+        "Remote/Flex"
+      ],
+      "appliedDate": null,
+      "notes": "",
+      "research": {
+        "companyIntel": "",
+        "keyPeople": [],
+        "recentNews": "",
+        "competitiveAdvantage": "",
+        "challenges": ""
+      },
+      "iceBreakers": [],
+      "objections": [],
+      "fitAnalysis": "",
+      "activityLog": [],
+      "dateAdded": "2025-09-22",
+      "links": {
+        "apply": "https://www.coinbase.com/careers/director-product",
+        "source": "https://www.coinbase.com/careers"
+      }
+    },
+    {
+      "id": "stripe-director-product-institutional-platform",
+      "company": "Stripe",
+      "roleTitle": "Director Product - Institutional Platform",
+      "location": "Remote",
+      "status": "not-started",
+      "vibe": "😐",
+      "fitScore": 10,
+      "salary": "$-",
+      "tags": [
+        "FinTech",
+        "Remote/Flex"
+      ],
+      "appliedDate": null,
+      "notes": "",
+      "research": {
+        "companyIntel": "",
+        "keyPeople": [],
+        "recentNews": "",
+        "competitiveAdvantage": "",
+        "challenges": ""
+      },
+      "iceBreakers": [],
+      "objections": [],
+      "fitAnalysis": "",
+      "activityLog": [],
+      "dateAdded": "2025-09-22",
+      "links": {
+        "apply": "https://stripe.com/jobs/director-product",
+        "source": "https://stripe.com/jobs"
+      }
+    },
+    {
+      "id": "openai-director-product-institutional-platform",
+      "company": "OpenAI",
+      "roleTitle": "Director Product - Institutional Platform",
+      "location": "Remote",
+      "status": "not-started",
+      "vibe": "😐",
+      "fitScore": 10,
+      "salary": "$-",
+      "tags": [
+        "AI",
+        "Remote/Flex"
+      ],
+      "appliedDate": null,
+      "notes": "",
+      "research": {
+        "companyIntel": "",
+        "keyPeople": [],
+        "recentNews": "",
+        "competitiveAdvantage": "",
+        "challenges": ""
+      },
+      "iceBreakers": [],
+      "objections": [],
+      "fitAnalysis": "",
+      "activityLog": [],
+      "dateAdded": "2025-09-22",
+      "links": {
+        "apply": "https://openai.com/careers/director-product",
+        "source": "https://openai.com/careers"
+      }
+    }
+  ]
+}

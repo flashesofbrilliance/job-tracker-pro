@@ -22,7 +22,9 @@
     "validate:prod": "node scripts/validate-environment.js prod",
     "track:changes": "node scripts/track-changes.js",
     "bootstrap:ci": "bash scripts/bootstrap-ci.sh",
-    "setup:pipeline": "bash scripts/setup-pipeline.sh"
+    "setup:pipeline": "bash scripts/setup-pipeline.sh",
+    "discover:roles": "node scripts/discovery-pipeline.js --no-fetch --sources docs/discovery-sources.json --out api/discovered-roles.json --outCsv docs/discovered-roles.csv",
+    "discover:fetch": "node scripts/discovery-pipeline.js --fetch --sources docs/discovery-sources.json --out api/discovered-roles.json --outCsv docs/discovered-roles.csv --verbose"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
