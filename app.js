@@ -228,27 +228,50 @@ const initialJobsData = [
     return out;
   }
 
+  function validateHeaders(headers){
+    const required = ['company','roletitle'];
+    const missing = required.filter(k => headers.indexOf(k) === -1);
+    if (missing.length) {
+      showToast && showToast(`Missing required columns: ${missing.join(', ')}`, 'error');
+      const err = new Error('Missing columns'); err.missing = missing; throw err;
+    }
+  }
+
+  function normalizeStatus(val){
+    const v = String(val||'').toLowerCase().trim();
+    const map = {
+      'not started': 'not-started', 'not-started': 'not-started', 'new':'not-started',
+      'research':'research',
+      'applied':'applied', 'submitted':'applied',
+      'interviewing':'interviewing', 'interview':'interviewing',
+      'offer':'offer', 'offers':'offer',
+      'rejected':'rejected', 'reject':'rejected', 'archived':'rejected'
+    };
+    return map[v] || 'not-started';
+  }
+
   function mergeCsvRows(rows, headers){
     // Expect headers like: company,roleTitle,status,location,salary,fitScore,tags
+    validateHeaders(headers);
     const idx = (name) => headers.indexOf(name.toLowerCase());
     const iCompany=idx('company'), iRole=idx('roletitle'), iStatus=idx('status'), iLoc=idx('location'), iSalary=idx('salary'), iFit=idx('fitscore'), iTags=idx('tags');
-    let added=0;
+    let added=0, skipped=0;
     rows.forEach(cols => {
       const company = (cols[iCompany]||'').trim();
       const roleTitle = (cols[iRole]||'').trim();
-      if (!company || !roleTitle) return;
+      if (!company || !roleTitle) { skipped++; return; }
       const id = `${company} ${roleTitle}`.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
       if (Array.isArray(jobsData) && !jobsData.find(j=>j.id===id)){
-        const fitScore = parseFloat(cols[iFit]||'') || 0;
+        const fitScore = Math.max(0, Math.min(10, parseFloat(cols[iFit]||'') || 0));
         const tags = (cols[iTags]||'').split(/\s*[,;]\s*/).filter(Boolean);
         const job = {
           id,
           company,
           roleTitle,
           location: (cols[iLoc]||'').trim() || 'Remote',
-          status: (cols[iStatus]||'not-started').trim() || 'not-started',
+          status: normalizeStatus(cols[iStatus]||'not-started'),
           vibe: '😐',
-          fitScore: Math.max(0, Math.min(10, fitScore || 0)),
+          fitScore,
           salary: (cols[iSalary]||'').trim() || '$-',
           tags,
           appliedDate: null,
@@ -262,6 +285,8 @@ const initialJobsData = [
         };
         jobsData.unshift(job);
         added++;
+      } else {
+        skipped++;
       }
     });
     // Refresh filtered dataset
@@ -270,6 +295,7 @@ const initialJobsData = [
         try { applyFilters(); } catch(e) { /* ignore */ }
       }
     }
+    if (skipped>0 && showToast) showToast(`Skipped ${skipped} duplicate/invalid rows`, 'info');
     return added;
   }
 })();
