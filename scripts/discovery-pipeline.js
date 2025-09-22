@@ -405,7 +405,15 @@ function toJobAppObject(j) {
     dateAdded: new Date().toISOString().slice(0,10),
     links: { apply: j.applyUrl, source: j.sourceUrl },
     trust: { network: j.networkTrust || 0, dyorNotes: j.dyorNotes || [], archetype: j.archetype || null },
-    quality: { clarity: j.clarityScore || 0, transparency: j.transparencyScore || 0, burnoutRisk: j.burnoutRisk || 0, momentum: j.momentum || 'flat' }
+    quality: { clarity: j.clarityScore || 0, transparency: j.transparencyScore || 0, burnoutRisk: j.burnoutRisk || 0, momentum: j.momentum || 'flat' },
+    meta: {
+      jdExcerpt: (()=>{
+        try {
+          const t = String(j.rawText || '').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+          return t.length > 600 ? t.slice(0, 600) + '…' : t;
+        } catch { return ''; }
+      })()
+    }
   };
 }
 

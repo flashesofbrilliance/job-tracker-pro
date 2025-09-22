@@ -356,7 +356,8 @@ const initialJobsData = [
         dateAdded: new Date().toISOString().slice(0,10),
         links: j.links || {},
         trust: j.trust || { network: 0, dyorNotes: [] },
-        quality: j.quality || { clarity: 0, transparency: 0, burnoutRisk: 0 }
+        quality: j.quality || { clarity: 0, transparency: 0, burnoutRisk: 0 },
+        meta: j.meta || {}
       };
       jobsData.unshift(job);
       try { pushVibeSnapshot(job, 'imported'); } catch {}
@@ -1258,6 +1259,17 @@ function createTableRow(job) {
   const actionsCell = row.querySelector('.actions-cell');
   actionsCell.appendChild(viewBtn);
   actionsCell.appendChild(editBtn);
+  // External link to application
+  if (job.links && (job.links.apply || job.links.source)) {
+    const a = document.createElement('a');
+    a.className = 'action-btn';
+    a.href = job.links.apply || job.links.source;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.title = 'Open posting';
+    a.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+    actionsCell.appendChild(a);
+  }
   
   // Quick archive/backlog for not-started with "why not" feedback
   if (job.status === 'not-started') {
@@ -1387,6 +1399,12 @@ function createKanbanCard(job) {
     e.preventDefault();
     e.stopPropagation();
     viewJobDetails(job.id);
+  });
+  // Open link on middle-click (auxclick) for convenience
+  card.addEventListener('auxclick', (e) => {
+    if (e.button === 1 && job.links && (job.links.apply || job.links.source)) {
+      window.open(job.links.apply || job.links.source, '_blank', 'noopener');
+    }
   });
   
   return card;
@@ -1674,6 +1692,23 @@ function createJobEditForm(job) {
           <label class="form-label">Why This Role Matches</label>
           <textarea class="form-control" id="edit-fit-analysis" rows="3">${job.fitAnalysis}</textarea>
         </div>
+      </div>
+
+      <!-- Links & JD Excerpt -->
+      <div class="form-section">
+        <h4>Links & JD</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Application</label>
+            ${job.links && (job.links.apply || job.links.source) ? `<a href="${job.links.apply || job.links.source}" class="btn btn--sm btn--outline" target="_blank" rel="noopener">Open Posting</a>` : '<span class="form-help">No link available</span>'}
+          </div>
+        </div>
+        ${job.meta && job.meta.jdExcerpt ? `
+          <div class="form-group">
+            <label class="form-label">JD Excerpt</label>
+            <div class="form-help" style="white-space:pre-wrap;">${job.meta.jdExcerpt}</div>
+          </div>
+        ` : ''}
       </div>
 
       <!-- Activity Timeline -->
