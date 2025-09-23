@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 Wireframe Design Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f7fa;
+      height: 100vh;
+      display: flex;
+    }
+    
+    .toolbar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .canvas-area {
+      flex: 1;
+      background: white;
+      position: relative;
+      overflow: auto;
+    }
+    
+    .canvas {
+      min-height: 800px;
+      min-width: 1200px;
+      background: 
+        repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(0,0,0,0.03) 20px),
+        repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(0,0,0,0.03) 20px);
+      position: relative;
+    }
+    
+    .toolbar h2 {
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      border-bottom: 2px solid #34495e;
+      padding-bottom: 10px;
+    }
+    
+    .component {
+      background: #34495e;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      cursor: grab;
+      transition: all 0.2s ease;
+    }
+    
+    .component:hover {
+      background: #4a6174;
+      transform: translateY(-2px);
+    }
+    
+    .component:active {
+      cursor: grabbing;
+    }
+    
+    .wireframe-element {
+      position: absolute;
+      border: 2px dashed #3498db;
+      background: rgba(52, 152, 219, 0.1);
+      min-width: 80px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: #2980b9;
+      font-weight: 600;
+      cursor: move;
+      resize: both;
+      overflow: auto;
+    }
+    
+    .wireframe-element:hover {
+      border-color: #e74c3c;
+      background: rgba(231, 76, 60, 0.1);
+      color: #c0392b;
+    }
+    
+    .wireframe-element.selected {
+      border-color: #f39c12;
+      background: rgba(243, 156, 18, 0.1);
+      color: #d68910;
+    }
+    
+    .export-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #34495e;
+    }
+    
+    .export-btn {
+      width: 100%;
+      padding: 10px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    
+    .export-btn:hover {
+      background: #229954;
+    }
+    
+    .coords-display {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+    
+    .instructions {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(52, 152, 219, 0.1);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h2>🎨 Wireframe Tools</h2>
+    
+    <div class="instructions">
+      <strong>How to use:</strong><br>
+      1. Drag components to canvas<br>
+      2. Resize & position elements<br>
+      3. Click to select/edit<br>
+      4. Export wireframe specs
+    </div>
+    
+    <h3 style="margin: 20px 0 10px 0;">Components</h3>
+    
+    <div class="component" data-type="header">
+      📋 Header Bar
+    </div>
+    
+    <div class="component" data-type="conveyor">
+      🏗️ Conveyor Belt
+    </div>
+    
+    <div class="component" data-type="bins">
+      🗂️ Sorting Bins
+    </div>
+    
+    <div class="component" data-type="queue">
+      📋 Job Queue
+    </div>
+    
+    <div class="component" data-type="stats">
+      📊 Stats Panel
+    </div>
+    
+    <div class="component" data-type="controls">
+      🎛️ Controls
+    </div>
+    
+    <div class="component" data-type="legend">
+      🏷️ Legend
+    </div>
+    
+    <div class="component" data-type="button">
+      🔘 Button
+    </div>
+    
+    <div class="component" data-type="text">
+      📝 Text Block
+    </div>
+    
+    <div class="component" data-type="card">
+      🎴 Card/Panel
+    </div>
+    
+    <div class="export-section">
+      <button class="export-btn" onclick="exportWireframe()">
+        💾 Export Specs
+      </button>
+      
+      <button class="export-btn" onclick="clearCanvas()">
+        🗑️ Clear Canvas
+      </button>
+      
+      <button class="export-btn" onclick="saveTemplate()">
+        💾 Save Template
+      </button>
+      
+      <textarea id="export-output" placeholder="Exported wireframe specs will appear here..."></textarea>
+    </div>
+  </div>
+  
+  <div class="canvas-area">
+    <div class="canvas" id="canvas">
+      <!-- Wireframe elements will be added here -->
+    </div>
+  </div>
+  
+  <div class="coords-display" id="coords">
+    x: 0, y: 0
+  </div>
+
+  <script>
+    let selectedElement = null;
+    let isDragging = false;
+    let dragOffset = { x: 0, y: 0 };
+    let elementCounter = 1;
+
+    // Component templates
+    const componentTemplates = {
+      header: { width: 800, height: 60, label: 'Header Bar' },
+      conveyor: { width: 200, height: 400, label: 'Conveyor Belt' },
+      bins: { width: 300, height: 250, label: 'Sorting Bins' },
+      queue: { width: 250, height: 400, label: 'Job Queue' },
+      stats: { width: 200, height: 150, label: 'Stats Panel' },
+      controls: { width: 150, height: 100, label: 'Controls' },
+      legend: { width: 180, height: 120, label: 'Legend' },
+      button: { width: 120, height: 40, label: 'Button' },
+      text: { width: 200, height: 30, label: 'Text Block' },
+      card: { width: 250, height: 200, label: 'Card/Panel' }
+    };
+
+    // Make components draggable
+    document.querySelectorAll('.component').forEach(component => {
+      component.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', component.dataset.type);
+      });
+      component.draggable = true;
+    });
+
+    // Canvas drop handling
+    const canvas = document.getElementById('canvas');
+    
+    canvas.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    canvas.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const componentType = e.dataTransfer.getData('text/plain');
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      createWireframeElement(componentType, x, y);
+    });
+
+    // Create wireframe element
+    function createWireframeElement(type, x, y) {
+      const template = componentTemplates[type];
+      const element = document.createElement('div');
+      element.className = 'wireframe-element';
+      element.dataset.type = type;
+      element.dataset.id = `element-${elementCounter++}`;
+      
+      element.style.left = x + 'px';
+      element.style.top = y + 'px';
+      element.style.width = template.width + 'px';
+      element.style.height = template.height + 'px';
+      element.textContent = template.label;
+      
+      // Make element interactive
+      element.addEventListener('click', selectElement);
+      element.addEventListener('mousedown', startDrag);
+      
+      canvas.appendChild(element);
+      selectElement({ target: element });
+    }
+
+    // Element selection
+    function selectElement(e) {
+      if (selectedElement) {
+        selectedElement.classList.remove('selected');
+      }
+      selectedElement = e.target;
+      selectedElement.classList.add('selected');
+    }
+
+    // Drag functionality
+    function startDrag(e) {
+      if (e.target.classList.contains('wireframe-element')) {
+        isDragging = true;
+        const rect = e.target.getBoundingClientRect();
+        dragOffset.x = e.clientX - rect.left;
+        dragOffset.y = e.clientY - rect.top;
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', stopDrag);
+      }
+    }
+
+    function drag(e) {
+      if (isDragging && selectedElement) {
+        const canvasRect = canvas.getBoundingClientRect();
+        const x = e.clientX - canvasRect.left - dragOffset.x;
+        const y = e.clientY - canvasRect.top - dragOffset.y;
+        
+        selectedElement.style.left = Math.max(0, x) + 'px';
+        selectedElement.style.top = Math.max(0, y) + 'px';
+      }
+    }
+
+    function stopDrag() {
+      isDragging = false;
+      document.removeEventListener('mousemove', drag);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    // Mouse coordinates display
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.round(e.clientX - rect.left);
+      const y = Math.round(e.clientY - rect.top);
+      document.getElementById('coords').textContent = `x: ${x}, y: ${y}`;
+    });
+
+    // Export wireframe
+    function exportWireframe() {
+      const elements = document.querySelectorAll('.wireframe-element');
+      let specs = '🎨 WIREFRAME SPECIFICATIONS\n';
+      specs += '================================\n\n';
+      
+      elements.forEach((el, index) => {
+        const rect = el.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        
+        specs += `${index + 1}. ${el.textContent}\n`;
+        specs += `   Position: (${Math.round(el.offsetLeft)}, ${Math.round(el.offsetTop)})\n`;
+        specs += `   Size: ${Math.round(el.offsetWidth)} x ${Math.round(el.offsetHeight)}\n`;
+        specs += `   Type: ${el.dataset.type}\n\n`;
+      });
+      
+      specs += '\n📱 RESPONSIVE BREAKPOINTS:\n';
+      specs += '- Mobile: < 768px\n';
+      specs += '- Tablet: 768px - 1024px\n';
+      specs += '- Desktop: > 1024px\n\n';
+      
+      specs += '🎯 INTERACTION NOTES:\n';
+      specs += '- Drag & Drop enabled\n';
+      specs += '- Hover states required\n';
+      specs += '- Loading animations needed\n';
+      
+      document.getElementById('export-output').value = specs;
+    }
+
+    // Clear canvas
+    function clearCanvas() {
+      document.querySelectorAll('.wireframe-element').forEach(el => el.remove());
+      selectedElement = null;
+      elementCounter = 1;
+    }
+
+    // Save template
+    function saveTemplate() {
+      const elements = [];
+      document.querySelectorAll('.wireframe-element').forEach(el => {
+        elements.push({
+          type: el.dataset.type,
+          x: el.offsetLeft,
+          y: el.offsetTop,
+          width: el.offsetWidth,
+          height: el.offsetHeight,
+          label: el.textContent
+        });
+      });
+      
+      const template = JSON.stringify(elements, null, 2);
+      console.log('Template saved:', template);
+      
+      // Could save to localStorage or export as file
+      localStorage.setItem('wireframe-template', template);
+      alert('Template saved to browser storage!');
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' && selectedElement) {
+        selectedElement.remove();
+        selectedElement = null;
+      }
+      
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case 'z':
+            e.preventDefault();
+            // Undo functionality could be added here
+            break;
+          case 's':
+            e.preventDefault();
+            exportWireframe();
+            break;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
