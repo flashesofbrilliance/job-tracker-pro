@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍣 Sushi Discovery Engine - Drag & Drop</title>
+  
+  <style>
+    /* Japanese Restaurant Aesthetic */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: linear-gradient(135deg, #2c1810 0%, #3d2817 25%, #4a2f1a 50%, #3d2817 75%, #2c1810 100%);
+      background-size: 400% 400%;
+      animation: woodGrain 20s ease infinite;
+      color: #f8f8f8;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    @keyframes woodGrain {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      padding: 16px 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      border-bottom: 3px solid #8b6914;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .app-title {
+      font-size: 2rem;
+      font-weight: 300;
+      color: #f8f8f8;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+    
+    /* Main Layout Container */
+    .sushi-bar-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    
+    .main-content {
+      flex: 1;
+      max-width: 700px;
+    }
+    
+    /* Wooden Counter */
+    .wooden-counter {
+      background: linear-gradient(180deg, #d4a574 0%, #b8956a 20%, #a67c52 80%, #8b6914 100%);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .wooden-counter::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(90deg, transparent 0px, rgba(139, 105, 20, 0.1) 1px, transparent 2px, transparent 30px);
+      pointer-events: none;
+    }
+    
+    /* Draggable Job Card */
+    .sushi-plate {
+      background: radial-gradient(ellipse at center, #ffffff 0%, #f8f8f8 30%, #f0f0f0 60%, #e8e8e8 100%);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 32px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.9), 0 0 0 2px rgba(139, 105, 20, 0.3);
+      position: relative;
+      border: 3px solid #d4a574;
+      transition: all 0.3s ease;
+      cursor: grab;
+      user-select: none;
+    }
+    
+    .sushi-plate:active {
+      cursor: grabbing;
+    }
+    
+    .sushi-plate.dragging {
+      z-index: 1000;
+      transform: rotate(5deg) scale(1.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      opacity: 0.9;
+    }
+    
+    .job-sushi {
+      background: linear-gradient(135deg, #fff 0%, #fafafa 100%);
+      border-radius: 12px;
+      padding: 28px;
+      color: #2d2d2d;
+      text-align: left;
+      position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    
+    .job-header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .company-name {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #d32f2f;
+      margin-bottom: 8px;
+    }
+    
+    .role-title {
+      font-size: 1.4rem;
+      color: #1976d2;
+      margin: 0;
+      font-weight: 500;
+    }
+    
+    .job-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    
+    .detail-item {
+      background: rgba(33, 128, 141, 0.08);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(33, 128, 141, 0.2);
+      font-weight: 500;
+      font-size: 0.9rem;
+      text-align: center;
+      color: #21808d;
+    }
+    
+    .salary {
+      color: #388e3c;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+    
+    .fit-score {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 700;
+      display: inline-block;
+      margin: 16px 0;
+    }
+    
+    /* Vertical Conveyor Belt */
+    .conveyor-belt {
+      background: linear-gradient(180deg, #2d3748, #4a5568, #2d3748);
+      width: 120px;
+      height: 400px;
+      margin: 20px auto;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 4px 0 8px rgba(0, 0, 0, 0.3), inset -4px 0 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .belt-track {
+      height: 100%;
+      width: 60px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: repeating-linear-gradient(0deg, #4a5568 0px, #4a5568 20px, #2d3748 20px, #2d3748 40px);
+      animation: beltMoveVertical 8s linear infinite;
+    }
+    
+    .moving-sushi {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      animation: sushiSlideVertical 12s linear infinite;
+    }
+    
+    .moving-sushi:nth-child(2) { animation-delay: -3s; }
+    .moving-sushi:nth-child(3) { animation-delay: -6s; }
+    .moving-sushi:nth-child(4) { animation-delay: -9s; }
+    .moving-sushi:nth-child(5) { animation-delay: -12s; }
+    
+    @keyframes beltMoveVertical {
+      0% { background-position: 0px 0px; }
+      100% { background-position: 0px 40px; }
+    }
+    
+    @keyframes sushiSlideVertical {
+      0% { top: -10%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 110%; opacity: 0; }
+    }
+    
+    /* Drag Target Plates */
+    .drag-targets {
+      display: flex;
+      justify-content: space-between;
+      margin: 30px 0;
+      gap: 40px;
+    }
+    
+    .drop-plate {
+      flex: 1;
+      height: 120px;
+      border-radius: 16px;
+      border: 3px dashed rgba(255, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+    
+    .drop-plate.yes-plate {
+      color: rgba(76, 175, 80, 0.7);
+      border-color: rgba(76, 175, 80, 0.4);
+    }
+    
+    .drop-plate.no-plate {
+      color: rgba(244, 67, 54, 0.7);
+      border-color: rgba(244, 67, 54, 0.4);
+    }
+    
+    .drop-plate.drag-over {
+      border-style: solid;
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .drop-plate.yes-plate.drag-over {
+      background: rgba(76, 175, 80, 0.15);
+      box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+      color: #4caf50;
+    }
+    
+    .drop-plate.no-plate.drag-over {
+      background: rgba(244, 67, 54, 0.15);
+      box-shadow: 0 0 30px rgba(244, 67, 54, 0.5);
+      color: #f44336;
+    }
+    
+    /* Toast Notifications */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #333, #555);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      animation: slideInFromRight 0.5s ease-out;
+      z-index: 1000;
+    }
+    
+    @keyframes slideInFromRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Controls hints */
+    .keyboard-hints {
+      text-align: center;
+      margin: 20px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+    
+    .key {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-family: monospace;
+    }
+    
+    /* Loading state */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      color: #f8f8f8;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #21808d;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Pattern Detection Indicator */
+    .engagement-indicator {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: rgba(255, 193, 7, 0.1);
+      color: #ffc107;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .engagement-indicator.show {
+      opacity: 1;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .sushi-bar-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .conveyor-belt {
+        order: -1;
+        width: 100%;
+        height: 120px;
+      }
+      
+      .belt-track {
+        height: 40px;
+        width: 100%;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        background: repeating-linear-gradient(90deg, #4a5568 0px, #4a5568 20px, #2d3748 20px, #2d3748 40px);
+        animation: beltMoveHorizontal 8s linear infinite;
+      }
+      
+      @keyframes beltMoveHorizontal {
+        0% { background-position: 0px 0px; }
+        100% { background-position: 40px 0px; }
+      }
+      
+      .moving-sushi {
+        top: 50%;
+        left: -5%;
+        transform: translateY(-50%);
+        animation: sushiSlideHorizontal 12s linear infinite;
+      }
+      
+      @keyframes sushiSlideHorizontal {
+        0% { left: -10%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { left: 110%; opacity: 0; }
+      }
+      
+      .drag-targets {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-content">
+      <h1 class="app-title">🍣 Sushi Discovery Engine - Drag & Drop</h1>
+    </div>
+  </header>
+
+  <div class="sushi-bar-container">
+    <!-- Vertical Conveyor Belt -->
+    <div class="conveyor-belt">
+      <div class="belt-track"></div>
+      <div class="moving-sushi">🍣</div>
+      <div class="moving-sushi">🍱</div>
+      <div class="moving-sushi">🍙</div>
+      <div class="moving-sushi">🍤</div>
+      <div class="moving-sushi">🥢</div>
+    </div>
+    
+    <!-- Main Job Card Content -->
+    <div class="main-content">
+      <div class="wooden-counter">
+        <div class="sushi-plate" id="sushi-plate" draggable="true">
+          <div class="job-sushi" id="job-sushi">
+            <div class="loading" id="loading">
+              <div class="loading-spinner"></div>
+              Loading fresh sushi jobs...
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Drag & Drop Target Plates -->
+      <div class="drag-targets">
+        <div class="drop-plate no-plate" id="no-plate">
+          <div style="font-size: 2rem;">👎</div>
+          <strong>PASS</strong>
+          <small>Drag here to reject</small>
+        </div>
+        <div class="drop-plate yes-plate" id="yes-plate">
+          <div style="font-size: 2rem;">👍</div>
+          <strong>APPLY</strong>
+          <small>Drag here to accept</small>
+        </div>
+      </div>
+
+      <div class="keyboard-hints">
+        🏆 <strong>Drag & Drop:</strong> Drag job card to PASS or APPLY plates<br>
+        ⌨️ <strong>Keyboard:</strong> <span class="key">↑ → YES</span> <span class="key">↓ ← NO</span> <span class="key">Space</span> Next <span class="key">R</span> Refresh
+      </div>
+    </div>
+  </div>
+  
+  <!-- Engagement Indicator -->
+  <div class="engagement-indicator" id="engagement-indicator">
+    Pattern detected: Auto-rejecting inactive jobs...
+  </div>
+
+  <script>
+    // Job data management
+    let currentJobIndex = 0;
+    let jobsData = [];
+    let isLoading = true;
+    
+    // Pattern detection for disengagement
+    let consecutiveSkips = 0;
+    let jobStartTime = Date.now();
+    let interactionHappened = false;
+    let engagementTimer = null;
+    const SKIP_THRESHOLD = 3; // Auto-reject after 3 consecutive skips
+    const TIME_THRESHOLD = 15000; // 15 seconds without interaction
+
+    // Sushi types for different job sectors
+    const sushiTypes = {
+      'Tech': '🍣',
+      'Finance': '🍤', 
+      'Healthcare': '🍱',
+      'Education': '🍙',
+      'Marketing': '🥢',
+      'Sales': '🍜',
+      'default': '🍣'
+    };
+
+    // Initialize the app
+    async function initApp() {
+      console.log('🍣 Initializing Drag & Drop Sushi Discovery...');
+      await loadJobs();
+      setupKeyboardControls();
+      setupDragAndDrop();
+      startPatternDetection();
+      console.log('✅ Sushi Discovery ready!');
+    }
+
+    // Load jobs from API
+    async function loadJobs() {
+      try {
+        const response = await fetch('/api/job-recommendations');
+        const data = await response.json();
+        jobsData = data.jobs || [];
+        
+        if (jobsData.length > 0) {
+          displayCurrentJob();
+        } else {
+          showError('No jobs found');
+        }
+      } catch (error) {
+        console.error('Failed to load jobs:', error);
+        showError('Failed to load jobs');
+      }
+      
+      isLoading = false;
+    }
+
+    // Display current job
+    function displayCurrentJob() {
+      const job = jobsData[currentJobIndex];
+      if (!job) return;
+
+      const jobElement = document.getElementById('job-sushi');
+      if (!jobElement) return;
+
+      jobElement.innerHTML = `
+        <div class="job-header">
+          <h1 class="company-name">${job.company}</h1>
+          <h2 class="role-title">${job.roleTitle}</h2>
+        </div>
+        
+        <div class="job-details">
+          <div class="detail-item">${job.sector}</div>
+          <div class="detail-item">${job.location}</div>
+          <div class="detail-item">Job ${currentJobIndex + 1} of ${jobsData.length}</div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+          <div class="salary">💰 ${job.salary}</div>
+          <div class="fit-score">🎯 ${job.fitScore}/10 Match</div>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.1); color: #666; text-align: center;">
+          <strong style="color: #333;">Skills:</strong> ${job.tags.join(' • ')}
+        </div>
+      `;
+
+      // Reset pattern detection for new job
+      resetPatternDetection();
+    }
+
+    // Show error message
+    function showError(message) {
+      const jobElement = document.getElementById('job-sushi');
+      if (jobElement) {
+        jobElement.innerHTML = `
+          <div style="text-align: center; color: #f44336;">
+            <h2>😅 Oops!</h2>
+            <p>${message}</p>
+            <button onclick="refreshJobs()" style="margin-top: 20px; padding: 10px 20px; background: #21808d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+              🔄 Try Again
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Job actions
+    function nextJob() {
+      if (jobsData.length === 0) return;
+      
+      currentJobIndex = (currentJobIndex + 1) % jobsData.length;
+      displayCurrentJob();
+      showToast('Next sushi job! 🍣');
+      
+      // Track skipping pattern
+      if (!interactionHappened) {
+        consecutiveSkips++;
+        if (consecutiveSkips >= SKIP_THRESHOLD) {
+          showEngagementIndicator();
+        }
+      }
+    }
+
+    function acceptJob() {
+      const job = jobsData[currentJobIndex];
+      showToast(`Applied to ${job.company}! 👍`, 'success');
+      
+      // Reset skip counter on interaction
+      consecutiveSkips = 0;
+      interactionHappened = true;
+      hideEngagementIndicator();
+      
+      setTimeout(() => {
+        nextJob();
+      }, 1000);
+    }
+
+    function rejectJob() {
+      showToast('Job passed 👎', 'info');
+      
+      // Reset skip counter on interaction
+      consecutiveSkips = 0;
+      interactionHappened = true;
+      hideEngagementIndicator();
+      
+      setTimeout(() => {
+        nextJob();
+      }, 600);
+    }
+
+    function refreshJobs() {
+      isLoading = true;
+      const jobElement = document.getElementById('job-sushi');
+      if (jobElement) {
+        jobElement.innerHTML = `
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Loading fresh sushi jobs...
+          </div>
+        `;
+      }
+      loadJobs();
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'default') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      
+      if (type === 'success') {
+        toast.style.background = 'linear-gradient(135deg, #4caf50, #45a049)';
+      } else if (type === 'error') {
+        toast.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+      }
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Keyboard controls
+    function setupKeyboardControls() {
+      document.addEventListener('keydown', (e) => {
+        if (isLoading) return;
+        
+        switch(e.key) {
+          case 'ArrowRight':
+          case 'ArrowUp':
+            e.preventDefault();
+            acceptJob();
+            break;
+          case 'ArrowLeft':
+          case 'ArrowDown':
+            e.preventDefault();
+            rejectJob();
+            break;
+          case ' ':
+            e.preventDefault();
+            nextJob();
+            break;
+          case 'r':
+          case 'R':
+            e.preventDefault();
+            refreshJobs();
+            break;
+        }
+      });
+    }
+
+    // Drag and Drop Setup
+    function setupDragAndDrop() {
+      const sushiPlate = document.getElementById('sushi-plate');
+      const yesPlate = document.getElementById('yes-plate');
+      const noPlate = document.getElementById('no-plate');
+      
+      if (!sushiPlate || !yesPlate || !noPlate) return;
+
+      // Drag start
+      sushiPlate.addEventListener('dragstart', (e) => {
+        sushiPlate.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', sushiPlate.outerHTML);
+      });
+
+      // Drag end
+      sushiPlate.addEventListener('dragend', (e) => {
+        sushiPlate.classList.remove('dragging');
+      });
+
+      // Setup drop zones
+      setupDropZone(yesPlate, () => acceptJob());
+      setupDropZone(noPlate, () => rejectJob());
+    }
+
+    function setupDropZone(dropZone, action) {
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+
+      dropZone.addEventListener('dragleave', (e) => {
+        dropZone.classList.remove('drag-over');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        action();
+      });
+    }
+
+    // Pattern Detection System
+    function startPatternDetection() {
+      if (engagementTimer) clearTimeout(engagementTimer);
+      
+      engagementTimer = setTimeout(() => {
+        if (!interactionHappened) {
+          autoRejectJob();
+        }
+      }, TIME_THRESHOLD);
+    }
+
+    function resetPatternDetection() {
+      jobStartTime = Date.now();
+      interactionHappened = false;
+      if (engagementTimer) clearTimeout(engagementTimer);
+      startPatternDetection();
+    }
+
+    function autoRejectJob() {
+      showToast('Auto-rejected due to inactivity 🤖', 'info');
+      consecutiveSkips++;
+      
+      if (consecutiveSkips >= SKIP_THRESHOLD) {
+        showEngagementIndicator();
+      }
+      
+      setTimeout(() => {
+        nextJob();
+      }, 1000);
+    }
+
+    function showEngagementIndicator() {
+      const indicator = document.getElementById('engagement-indicator');
+      if (indicator) {
+        indicator.classList.add('show');
+      }
+    }
+
+    function hideEngagementIndicator() {
+      const indicator = document.getElementById('engagement-indicator');
+      if (indicator) {
+        indicator.classList.remove('show');
+      }
+    }
+
+    // Start the app
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    // Error handling
+    window.addEventListener('error', function(e) {
+      console.warn('Error handled:', e.error?.message || e.message);
+    });
+  </script>
+</body>
+</html>

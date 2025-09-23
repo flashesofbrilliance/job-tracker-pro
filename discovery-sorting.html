@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍣 Sushi Sorting Station - Job Refinement</title>
+  
+  <style>
+    /* Japanese Factory/Sorting Aesthetic */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: linear-gradient(135deg, #1a2332 0%, #2d3e50 25%, #34495e 50%, #2d3e50 75%, #1a2332 100%);
+      background-size: 400% 400%;
+      animation: factoryHum 25s ease infinite;
+      color: #ecf0f1;
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    @keyframes factoryHum {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    /* Header Control Panel */
+    .control-panel {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      padding: 12px 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border-bottom: 2px solid #3498db;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .panel-title {
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: #ecf0f1;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    }
+    
+    .stats-display {
+      display: flex;
+      gap: 24px;
+      font-size: 0.9rem;
+    }
+    
+    .stat-item {
+      background: rgba(52, 152, 219, 0.1);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(52, 152, 219, 0.3);
+    }
+    
+    /* Main Sorting Interface */
+    .sorting-station {
+      display: grid;
+      grid-template-columns: 1fr 300px 1fr;
+      height: calc(100vh - 60px);
+      gap: 20px;
+      padding: 20px;
+    }
+    
+    /* Conveyor Belt Section */
+    .conveyor-section {
+      background: linear-gradient(180deg, #34495e 0%, #2c3e50 50%, #34495e 100%);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .belt-container {
+      width: 80px;
+      height: 100%;
+      margin: 0 auto;
+      position: relative;
+      background: linear-gradient(90deg, #555 0%, #666 50%, #555 100%);
+      box-shadow: inset 4px 0 8px rgba(0, 0, 0, 0.4);
+    }
+    
+    .belt-track {
+      width: 60px;
+      height: 100%;
+      margin: 0 auto;
+      background: repeating-linear-gradient(
+        0deg,
+        #666 0px,
+        #666 15px,
+        #555 15px,
+        #555 30px
+      );
+      animation: beltMove 4s linear infinite;
+      position: relative;
+    }
+    
+    @keyframes beltMove {
+      0% { background-position: 0px 0px; }
+      100% { background-position: 0px 30px; }
+    }
+    
+    /* Sushi Items on Belt */
+    .sushi-item {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      cursor: grab;
+      user-select: none;
+      z-index: 100;
+      transition: transform 0.2s ease;
+      animation: sushiFlow 8s linear infinite;
+    }
+    
+    .sushi-item:hover {
+      transform: translateX(-50%) scale(1.1);
+    }
+    
+    .sushi-item:active {
+      cursor: grabbing;
+    }
+    
+    .sushi-item.dragging {
+      z-index: 1000;
+      transform: translateX(-50%) rotate(15deg) scale(1.2);
+      opacity: 0.9;
+    }
+    
+    @keyframes sushiFlow {
+      0% { 
+        top: -10%; 
+        opacity: 0; 
+      }
+      5% { 
+        opacity: 1; 
+      }
+      95% { 
+        opacity: 1; 
+      }
+      100% { 
+        top: 110%; 
+        opacity: 0; 
+      }
+    }
+    
+    /* Sorting Bins */
+    .sorting-bins {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      justify-content: center;
+    }
+    
+    .sorting-bin {
+      flex: 1;
+      border-radius: 16px;
+      border: 3px dashed rgba(255, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: rgba(0, 0, 0, 0.2);
+      position: relative;
+      min-height: 200px;
+    }
+    
+    .sorting-bin.yes-bin {
+      color: rgba(46, 204, 113, 0.8);
+      border-color: rgba(46, 204, 113, 0.5);
+    }
+    
+    .sorting-bin.no-bin {
+      color: rgba(231, 76, 60, 0.8);
+      border-color: rgba(231, 76, 60, 0.5);
+    }
+    
+    .sorting-bin.drag-over {
+      border-style: solid;
+      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sorting-bin.yes-bin.drag-over {
+      background: rgba(46, 204, 113, 0.15);
+      box-shadow: 0 0 30px rgba(46, 204, 113, 0.4);
+      color: #2ecc71;
+    }
+    
+    .sorting-bin.no-bin.drag-over {
+      background: rgba(231, 76, 60, 0.15);
+      box-shadow: 0 0 30px rgba(231, 76, 60, 0.4);
+      color: #e74c3c;
+    }
+    
+    .bin-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+    
+    .bin-label {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .bin-count {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    
+    /* Job Queue Section */
+    .job-queue {
+      background: rgba(44, 62, 80, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .queue-header {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #3498db;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .job-preview {
+      background: rgba(52, 73, 94, 0.4);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(52, 152, 219, 0.2);
+      font-size: 0.85rem;
+    }
+    
+    .job-preview.processing {
+      border-color: #f39c12;
+      background: rgba(243, 156, 18, 0.1);
+    }
+    
+    .job-company {
+      font-weight: 600;
+      color: #3498db;
+      margin-bottom: 4px;
+    }
+    
+    .job-role {
+      color: #ecf0f1;
+      margin-bottom: 6px;
+    }
+    
+    .job-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: rgba(236, 240, 241, 0.7);
+    }
+    
+    /* Sushi Type Legend */
+    .sushi-legend {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    
+    .legend-emoji {
+      font-size: 1.2rem;
+      width: 20px;
+    }
+    
+    /* Performance Metrics */
+    .performance-panel {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+      min-width: 200px;
+    }
+    
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 2px 0;
+    }
+    
+    .metric-value {
+      font-weight: 600;
+      color: #3498db;
+    }
+    
+    /* Toast Notifications */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      animation: slideInFromTop 0.4s ease-out;
+      z-index: 1000;
+      font-size: 0.9rem;
+    }
+    
+    @keyframes slideInFromTop {
+      from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    
+    /* Speed Control */
+    .speed-control {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+    }
+    
+    .speed-slider {
+      width: 100px;
+      margin: 8px 0;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .sorting-station {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto 200px;
+        gap: 10px;
+        padding: 10px;
+      }
+      
+      .sorting-bins {
+        flex-direction: row;
+        gap: 10px;
+      }
+      
+      .sorting-bin {
+        min-height: 120px;
+      }
+      
+      .sushi-legend,
+      .performance-panel,
+      .speed-control {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Control Panel -->
+  <header class="control-panel">
+    <h1 class="panel-title">🍣 Sushi Sorting Station</h1>
+    <div class="stats-display">
+      <div class="stat-item">
+        <strong id="processed-count">0</strong> Processed
+      </div>
+      <div class="stat-item">
+        <strong id="yes-count">0</strong> Accepted
+      </div>
+      <div class="stat-item">
+        <strong id="no-count">0</strong> Rejected
+      </div>
+      <div class="stat-item">
+        Speed: <strong id="current-speed">Normal</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Sorting Interface -->
+  <div class="sorting-station">
+    <!-- Conveyor Belt -->
+    <div class="conveyor-section">
+      <div class="belt-container">
+        <div class="belt-track" id="belt-track">
+          <!-- Sushi items will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Sorting Bins -->
+    <div class="sorting-bins">
+      <div class="sorting-bin yes-bin" id="yes-bin">
+        <div class="bin-icon">✅</div>
+        <div class="bin-label">ACCEPT</div>
+        <div class="bin-subtitle">Drag sushi here to accept jobs</div>
+        <div class="bin-count" id="yes-bin-count">0</div>
+      </div>
+      
+      <div class="sorting-bin no-bin" id="no-bin">
+        <div class="bin-icon">❌</div>
+        <div class="bin-label">REJECT</div>
+        <div class="bin-subtitle">Drag sushi here to reject jobs</div>
+        <div class="bin-count" id="no-bin-count">0</div>
+      </div>
+    </div>
+
+    <!-- Job Queue -->
+    <div class="job-queue">
+      <div class="queue-header">📋 Job Processing Queue</div>
+      <div id="job-queue-list">
+        <!-- Job previews will be added here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Sushi Type Legend -->
+  <div class="sushi-legend">
+    <div style="font-weight: 600; margin-bottom: 8px; color: #3498db;">🍣 Sushi Guide</div>
+    <div class="legend-item">
+      <span class="legend-emoji">🍣</span>
+      <span>Tech Jobs</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-emoji">🍱</span>
+      <span>Healthcare</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-emoji">🍙</span>
+      <span>Education</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-emoji">🍤</span>
+      <span>Finance</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-emoji">🥢</span>
+      <span>Marketing</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-emoji">🍜</span>
+      <span>Sales</span>
+    </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="performance-panel">
+    <div style="font-weight: 600; margin-bottom: 8px; color: #3498db;">📊 Performance</div>
+    <div class="metric-row">
+      <span>Sorting Speed:</span>
+      <span class="metric-value" id="sorting-speed">0/min</span>
+    </div>
+    <div class="metric-row">
+      <span>Accuracy Rate:</span>
+      <span class="metric-value" id="accuracy-rate">--</span>
+    </div>
+    <div class="metric-row">
+      <span>Accept Ratio:</span>
+      <span class="metric-value" id="accept-ratio">--</span>
+    </div>
+    <div class="metric-row">
+      <span>Queue Length:</span>
+      <span class="metric-value" id="queue-length">0</span>
+    </div>
+  </div>
+
+  <!-- Speed Control -->
+  <div class="speed-control">
+    <div style="font-weight: 600; margin-bottom: 4px;">⚡ Belt Speed</div>
+    <input type="range" id="speed-slider" class="speed-slider" 
+           min="0.5" max="3" step="0.5" value="1">
+    <div style="font-size: 0.7rem; color: #bdc3c7;">
+      Slow ← → Fast
+    </div>
+  </div>
+
+  <script>
+    // Core Data Management
+    let jobsData = [];
+    let currentJobIndex = 0;
+    let sortingStats = {
+      processed: 0,
+      accepted: 0,
+      rejected: 0,
+      startTime: Date.now()
+    };
+    
+    // Sushi-to-sector mapping
+    const sushiMap = {
+      'Tech': '🍣',
+      'Healthcare': '🍱',
+      'Education': '🍙', 
+      'Finance': '🍤',
+      'Marketing': '🥢',
+      'Sales': '🍜',
+      'default': '🍣'
+    };
+    
+    // Belt speed control
+    let beltSpeed = 1; // 1x normal speed
+    let spawnInterval = null;
+    
+    // Initialize the sorting station
+    async function initSortingStation() {
+      console.log('🍣 Initializing Sushi Sorting Station...');
+      
+      await loadJobs();
+      setupDragAndDrop();
+      setupSpeedControl();
+      startSushiSpawning();
+      startMetricsUpdater();
+      
+      console.log('✅ Sorting Station Ready!');
+    }
+
+    // Load job data from API
+    async function loadJobs() {
+      try {
+        const response = await fetch('/api/job-recommendations');
+        const data = await response.json();
+        jobsData = data.jobs || [];
+        
+        if (jobsData.length === 0) {
+          showToast('❌ No jobs available for sorting');
+          return;
+        }
+        
+        // Populate initial queue display
+        updateJobQueue();
+        showToast(`✅ Loaded ${jobsData.length} jobs for sorting`);
+        
+      } catch (error) {
+        console.error('Failed to load jobs:', error);
+        showToast('❌ Failed to load jobs');
+      }
+    }
+
+    // Create and spawn sushi items
+    function spawnSushiItem() {
+      if (currentJobIndex >= jobsData.length) {
+        showToast('🎉 All jobs processed! Reloading...');
+        setTimeout(() => {
+          resetSortingSession();
+        }, 2000);
+        return;
+      }
+      
+      const job = jobsData[currentJobIndex];
+      const sushiEmoji = sushiMap[job.sector] || sushiMap.default;
+      
+      const sushiItem = document.createElement('div');
+      sushiItem.className = 'sushi-item';
+      sushiItem.textContent = sushiEmoji;
+      sushiItem.draggable = true;
+      sushiItem.dataset.jobIndex = currentJobIndex;
+      
+      // Random horizontal position variation
+      const offset = (Math.random() - 0.5) * 20;
+      sushiItem.style.left = `calc(50% + ${offset}px)`;
+      
+      // Random spawn delay for more natural flow
+      const delay = Math.random() * 2;
+      sushiItem.style.animationDelay = `${delay}s`;
+      sushiItem.style.animationDuration = `${8 / beltSpeed}s`;
+      
+      document.getElementById('belt-track').appendChild(sushiItem);
+      
+      // Setup drag events for this item
+      setupSushiDragEvents(sushiItem);
+      
+      // Remove item after animation completes
+      setTimeout(() => {
+        if (sushiItem.parentNode) {
+          sushiItem.remove();
+          
+          // Auto-reject if not processed
+          if (parseInt(sushiItem.dataset.jobIndex) === currentJobIndex) {
+            handleJobDecision(false, true); // auto-rejected
+          }
+        }
+      }, (8000 / beltSpeed) + (delay * 1000));
+      
+      currentJobIndex++;
+      updateJobQueue();
+    }
+
+    // Setup drag events for individual sushi items
+    function setupSushiDragEvents(sushiItem) {
+      sushiItem.addEventListener('dragstart', (e) => {
+        sushiItem.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', sushiItem.dataset.jobIndex);
+      });
+
+      sushiItem.addEventListener('dragend', (e) => {
+        sushiItem.classList.remove('dragging');
+      });
+    }
+
+    // Setup drag and drop for sorting bins
+    function setupDragAndDrop() {
+      const yesBin = document.getElementById('yes-bin');
+      const noBin = document.getElementById('no-bin');
+      
+      setupDropZone(yesBin, true);
+      setupDropZone(noBin, false);
+    }
+
+    function setupDropZone(dropZone, isAccept) {
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+
+      dropZone.addEventListener('dragleave', (e) => {
+        dropZone.classList.remove('drag-over');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        
+        const jobIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const sushiItem = document.querySelector(`[data-job-index="${jobIndex}"]`);
+        
+        if (sushiItem) {
+          sushiItem.remove();
+          handleJobDecision(isAccept, false);
+        }
+      });
+    }
+
+    // Handle job accept/reject decision
+    function handleJobDecision(isAccept, autoRejected = false) {
+      const job = jobsData[currentJobIndex - 1];
+      if (!job) return;
+      
+      sortingStats.processed++;
+      
+      if (isAccept) {
+        sortingStats.accepted++;
+        showToast(`✅ Accepted: ${job.company} - ${job.roleTitle}`);
+      } else {
+        sortingStats.rejected++;
+        const message = autoRejected ? 
+          `⏰ Auto-rejected: ${job.company}` : 
+          `❌ Rejected: ${job.company}`;
+        showToast(message);
+      }
+      
+      updateStatsDisplay();
+    }
+
+    // Update job queue display
+    function updateJobQueue() {
+      const queueList = document.getElementById('job-queue-list');
+      queueList.innerHTML = '';
+      
+      const upcomingJobs = jobsData.slice(currentJobIndex, currentJobIndex + 8);
+      
+      upcomingJobs.forEach((job, index) => {
+        const jobPreview = document.createElement('div');
+        jobPreview.className = 'job-preview';
+        if (index === 0) jobPreview.classList.add('processing');
+        
+        jobPreview.innerHTML = `
+          <div class="job-company">${job.company}</div>
+          <div class="job-role">${job.roleTitle}</div>
+          <div class="job-details">
+            <span>${job.sector}</span>
+            <span>${sushiMap[job.sector] || sushiMap.default}</span>
+          </div>
+        `;
+        
+        queueList.appendChild(jobPreview);
+      });
+    }
+
+    // Update statistics display
+    function updateStatsDisplay() {
+      document.getElementById('processed-count').textContent = sortingStats.processed;
+      document.getElementById('yes-count').textContent = sortingStats.accepted;
+      document.getElementById('no-count').textContent = sortingStats.rejected;
+      document.getElementById('yes-bin-count').textContent = sortingStats.accepted;
+      document.getElementById('no-bin-count').textContent = sortingStats.rejected;
+    }
+
+    // Setup belt speed control
+    function setupSpeedControl() {
+      const speedSlider = document.getElementById('speed-slider');
+      const speedDisplay = document.getElementById('current-speed');
+      
+      speedSlider.addEventListener('input', (e) => {
+        beltSpeed = parseFloat(e.target.value);
+        
+        const speedLabels = {
+          0.5: 'Slow',
+          1.0: 'Normal', 
+          1.5: 'Fast',
+          2.0: 'Faster',
+          2.5: 'Very Fast',
+          3.0: 'Maximum'
+        };
+        
+        speedDisplay.textContent = speedLabels[beltSpeed] || 'Custom';
+        
+        // Update belt animation speed
+        const beltTrack = document.getElementById('belt-track');
+        beltTrack.style.animationDuration = `${4 / beltSpeed}s`;
+        
+        // Restart spawning with new speed
+        clearInterval(spawnInterval);
+        startSushiSpawning();
+      });
+    }
+
+    // Start spawning sushi items
+    function startSushiSpawning() {
+      const spawnDelay = 3000 / beltSpeed; // Adjusted for speed
+      
+      spawnInterval = setInterval(() => {
+        if (currentJobIndex < jobsData.length) {
+          spawnSushiItem();
+        }
+      }, spawnDelay);
+    }
+
+    // Start metrics updater
+    function startMetricsUpdater() {
+      setInterval(() => {
+        updatePerformanceMetrics();
+      }, 1000);
+    }
+
+    // Update performance metrics
+    function updatePerformanceMetrics() {
+      const elapsed = (Date.now() - sortingStats.startTime) / 1000 / 60; // minutes
+      const sortingSpeed = Math.round(sortingStats.processed / Math.max(elapsed, 0.1));
+      
+      const accuracyRate = sortingStats.processed > 0 ? 
+        Math.round((sortingStats.accepted / sortingStats.processed) * 100) : 0;
+      
+      const acceptRatio = sortingStats.processed > 0 ? 
+        Math.round((sortingStats.accepted / sortingStats.processed) * 100) : 0;
+      
+      document.getElementById('sorting-speed').textContent = `${sortingSpeed}/min`;
+      document.getElementById('accuracy-rate').textContent = `${accuracyRate}%`;
+      document.getElementById('accept-ratio').textContent = `${acceptRatio}%`;
+      document.getElementById('queue-length').textContent = Math.max(0, jobsData.length - currentJobIndex);
+    }
+
+    // Show toast notification
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Reset sorting session
+    function resetSortingSession() {
+      currentJobIndex = 0;
+      sortingStats = {
+        processed: 0,
+        accepted: 0,
+        rejected: 0,
+        startTime: Date.now()
+      };
+      
+      // Clear existing sushi items
+      document.querySelectorAll('.sushi-item').forEach(item => item.remove());
+      
+      updateStatsDisplay();
+      updateJobQueue();
+      
+      showToast('🔄 New sorting session started');
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      switch(e.key) {
+        case 'r':
+        case 'R':
+          e.preventDefault();
+          resetSortingSession();
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          const currentSpeed = parseFloat(document.getElementById('speed-slider').value);
+          if (currentSpeed < 3) {
+            document.getElementById('speed-slider').value = currentSpeed + 0.5;
+            document.getElementById('speed-slider').dispatchEvent(new Event('input'));
+          }
+          break;
+        case '-':
+          e.preventDefault();
+          const currentSpeedMinus = parseFloat(document.getElementById('speed-slider').value);
+          if (currentSpeedMinus > 0.5) {
+            document.getElementById('speed-slider').value = currentSpeedMinus - 0.5;
+            document.getElementById('speed-slider').dispatchEvent(new Event('input'));
+          }
+          break;
+      }
+    });
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initSortingStation);
+
+    // Error handling
+    window.addEventListener('error', function(e) {
+      console.warn('Error handled:', e.error?.message || e.message);
+    });
+  </script>
+</body>
+</html>
