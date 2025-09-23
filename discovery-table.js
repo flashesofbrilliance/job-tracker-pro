@@ -18,6 +18,12 @@
 
   function addJobFromReco(reco, opts={}){
     const jobs = getJobs();
+    // De-duplicate by company + roleTitle
+    const key = `${(reco.company||'').trim()}::${(reco.roleTitle||'').trim()}`.toLowerCase();
+    const exists = jobs.some(j => `${(j.company||'').trim()}::${(j.roleTitle||'').trim()}`.toLowerCase() === key);
+    if (exists) {
+      return { added: false, reason: 'duplicate' };
+    }
     const job = {
       id: `${reco.id}-${Date.now()}`,
       company: reco.company,
@@ -38,7 +44,7 @@
     if (opts.activity) job.activityLog.push(opts.activity);
     jobs.unshift(job);
     setJobs(jobs);
-    return job;
+    return { added: true, job };
   }
 
   // Persist lightweight rejection record for future refinement
@@ -51,9 +57,10 @@
   }
 
   function fitClass(v){
-    if (v >= 9.0) return 'fit-good';
-    if (v >= 7.5) return 'fit-fair';
-    return 'fit-poor';
+    if (v >= 9.0) return 'excellent';
+    if (v >= 8.0) return 'good';
+    if (v >= 7.0) return 'fair';
+    return 'poor';
   }
 
   // Render table
@@ -77,8 +84,12 @@
       const idx = Number(e.currentTarget.getAttribute('data-yes'));
       openReason('yes', recos[idx], (reason, notes) => {
         const activity = (reason || notes) ? { type: 'Positive', reason: reason||'Yes', note: notes||'', ts: new Date().toISOString() } : undefined;
-        addJobFromReco(recos[idx], { vibe: '😍', activity });
-        showToast(`Added to Not Started: ${recos[idx].company}`, 'success');
+        const res = addJobFromReco(recos[idx], { vibe: '😍', activity });
+        if (res && res.added) {
+          showToast(`Added to Not Started: ${recos[idx].company}`, 'success');
+        } else {
+          showToast(`Already added: ${recos[idx].company}`, 'info');
+        }
       });
     }));
 
@@ -86,13 +97,17 @@
       const idx = Number(e.currentTarget.getAttribute('data-no'));
       openReason('no', recos[idx], (reason, notes) => {
         recordRejection(recos[idx], reason, notes);
-        addJobFromReco(recos[idx], {
+        const res = addJobFromReco(recos[idx], {
           vibe: '😟',
           archiveTag: 'Backlog',
           archiveReason: reason ? `${reason}${notes?`: ${notes}`:''}` : 'Archive-Pending',
           activity: { type: 'Archived', reason: reason||'', note: notes||'', ts: new Date().toISOString() }
         });
-        showToast(`Archived (Backlog): ${recos[idx].company}`, 'info');
+        if (res && res.added) {
+          showToast(`Archived (Backlog): ${recos[idx].company}`, 'info');
+        } else {
+          showToast(`Already archived/backlogged: ${recos[idx].company}`, 'info');
+        }
       });
     }));
   }
@@ -110,8 +125,24 @@
     select.innerHTML = (kind==='yes'?YES_REASONS:NO_REASONS).map(r=>`<option value="${r}">${r}</option>`).join('');
     notes.value = '';
     pop.style.display = 'flex';
+    const card = pop.querySelector('.reason-card');
+    const prevFocus = document.activeElement;
+    if (card) card.focus();
 
-    function close(){ pop.style.display='none'; btnSave.onclick = btnSkip.onclick = null; }
+    function handleKey(e){
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close(); onDone('', '');
+      }
+    }
+
+    function close(){
+      pop.style.display='none';
+      btnSave.onclick = btnSkip.onclick = null;
+      document.removeEventListener('keydown', handleKey, true);
+      if (prevFocus && prevFocus.focus) try { prevFocus.focus(); } catch(_) {}
+    }
+    document.addEventListener('keydown', handleKey, true);
     btnSave.onclick = () => { const v=select.value; const n=notes.value.trim(); close(); onDone(v, n); };
     btnSkip.onclick = () => { close(); onDone('', ''); };
   }

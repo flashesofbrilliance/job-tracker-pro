@@ -12,9 +12,11 @@
     table.discovery th, table.discovery td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: left; }
     table.discovery th { background: #fafafa; font-weight: 600; }
     .badge { display:inline-block; padding:2px 6px; border-radius: 10px; font-size: 12px; background:#eef; color:#334; }
-    .fit-good { color: #0a7; font-weight: 600; }
-    .fit-fair { color: #a70; }
-    .fit-poor { color: #a33; }
+    /* Align fit class names to existing app styles */
+    .excellent { color: #0a7; font-weight: 600; }
+    .good { color: #2a7; font-weight: 600; }
+    .fair { color: #a70; }
+    .poor { color: #a33; }
     .actions button { margin-right: 6px; }
     .reason-pop { position: fixed; inset: 0; display:none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); }
     .reason-card { background: #fff; border-radius: 8px; padding: 16px; width: min(520px, 92vw); box-shadow: 0 10px 28px rgba(0,0,0,0.2); }
@@ -69,7 +71,7 @@
 
   <!-- Quick feedback dialog -->
   <div class="reason-pop" id="reason-pop">
-    <div class="reason-card">
+    <div class="reason-card" role="dialog" aria-modal="true" aria-labelledby="reason-title" tabindex="-1">
       <h3 id="reason-title">Quick Feedback</h3>
       <div class="row">
         <label for="reason-select" style="min-width:110px">Reason</label>
@@ -87,4 +89,3 @@
   </div>
 </body>
 </html>
-
