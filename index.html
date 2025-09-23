@@ -33,6 +33,9 @@
                     </div>
                 </div>
                 <div class="header-actions">
+                    <button class="btn btn--outline btn--sm" id="open-settings-btn">
+                        <i class="fas fa-gear"></i> Settings
+                    </button>
                     <button class="btn btn--secondary btn--sm" id="import-btn">
                         <i class="fas fa-upload"></i> Import CSV
                     </button>
@@ -349,6 +352,14 @@
                             <h3>Top Performing Segments</h3>
                             <div class="segment-stats" id="segment-stats"></div>
                         </div>
+                        <div class="analytics-card">
+                            <h3>Rejection Reasons</h3>
+                            <div id="rejection-reasons"></div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Rejections by Company</h3>
+                            <div id="rejections-by-company"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -360,9 +371,26 @@
                             <div id="discover-insights"></div>
                         </div>
                         <div class="analytics-card">
-                            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                                 <h3 style="margin:0;">Recommended Roles</h3>
-                                <div style="display:flex;gap:8px;">
+                                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                                  <label style="font-size:12px;opacity:0.8;">Sector</label>
+                                  <select id="discover-sector-filter" class="form-control" style="min-width:140px;">
+                                    <option value="">All</option>
+                                    <option>Crypto</option>
+                                    <option>AI</option>
+                                    <option>FinTech</option>
+                                    <option>Payments</option>
+                                    <option>Infrastructure</option>
+                                    <option>L1</option>
+                                    <option>Exchange</option>
+                                  </select>
+                                  <label style="font-size:12px;opacity:0.8;">Sort</label>
+                                  <select id="discover-sort" class="form-control" style="min-width:160px;">
+                                    <option value="fit-desc">Fit (high → low)</option>
+                                    <option value="company-asc">Company (A→Z)</option>
+                                    <option value="sector-asc">Sector (A→Z)</option>
+                                  </select>
                                   <button class="btn btn--outline btn--sm" id="refresh-recos-btn"><i class="fas fa-sync"></i> Refresh</button>
                                   <button class="btn btn--sm" id="reset-recos-feedback-btn" title="Clear thumbs feedback">Reset Votes</button>
                                 </div>
@@ -485,6 +513,39 @@
                 <div class="modal-footer">
                     <button class="btn btn--outline" id="reset-cancel">Cancel</button>
                     <button class="btn btn--primary" id="reset-confirm">Reset Pipeline</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal hidden" id="settings-modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Settings</h2>
+                    <button class="modal-close" id="settings-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="setting-require-reason">
+                            <span class="checkmark"></span>
+                            Require reason when moving to Rejected
+                        </label>
+                    </div>
+                    <div class="filter-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="setting-quick-reject-toast" checked>
+                            <span class="checkmark"></span>
+                            Show quick reason dropdown near Rejected column
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn--outline" id="settings-cancel">Close</button>
+                    <button class="btn btn--primary" id="settings-save">Save</button>
                 </div>
             </div>
         </div>
