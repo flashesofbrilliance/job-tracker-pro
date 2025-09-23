@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   build-and-publish-discovery-preview:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -99,4 +100,3 @@ EOF
               issue_number: pr,
               body
             });
-
