@@ -228,6 +228,14 @@
                             <option value="storyteller-gtm">Storyteller/GTM</option>
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Intake</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="intake-only">
+                            <span class="checkmark"></span>
+                            Intake pending only
+                        </label>
+                    </div>
                     <div class="filter-actions">
                         <button class="btn btn--outline btn--sm" id="clear-filters-btn">Clear All</button>
                         <button class="btn btn--primary btn--sm" id="apply-filters-btn">Apply Filters</button>
@@ -477,6 +485,58 @@
                 <div class="modal-footer">
                     <button class="btn btn--outline" id="reset-cancel">Cancel</button>
                     <button class="btn btn--primary" id="reset-confirm">Reset Pipeline</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Grade (Intake) Modal -->
+        <div class="modal hidden" id="intake-modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Quick Grade</h2>
+                    <button class="modal-close" id="intake-modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-section">
+                        <h4>Vibe</h4>
+                        <div class="form-row">
+                            <label><input type="radio" name="intake-vibe" value="😊"> 😊</label>
+                            <label><input type="radio" name="intake-vibe" value="😐" checked> 😐</label>
+                            <label><input type="radio" name="intake-vibe" value="😞"> 😞</label>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h4>Red Flags</h4>
+                        <div class="form-row" id="intake-flags">
+                            <label class="checkbox-label"><input type="checkbox" value="toxic_culture"><span class="checkmark"></span> Toxic culture</label>
+                            <label class="checkbox-label"><input type="checkbox" value="hustle_996"><span class="checkmark"></span> Hustle/996</label>
+                            <label class="checkbox-label"><input type="checkbox" value="scope_creep"><span class="checkmark"></span> Scope creep</label>
+                            <label class="checkbox-label"><input type="checkbox" value="vague_comp"><span class="checkmark"></span> Vague comp</label>
+                            <label class="checkbox-label"><input type="checkbox" value="location_visa"><span class="checkmark"></span> Location/Visa</label>
+                            <label class="checkbox-label"><input type="checkbox" value="level_mismatch"><span class="checkmark"></span> Level mismatch</label>
+                        </div>
+                        <div class="form-group"><input type="text" class="form-control" id="intake-flag-other" placeholder="Other red flag (optional)"></div>
+                    </div>
+                    <div class="form-section">
+                        <h4>Must‑Have Gaps</h4>
+                        <div class="form-row" id="intake-musts">
+                            <label class="checkbox-label"><input type="checkbox" value="comp_clarity"><span class="checkmark"></span> Compensation clarity</label>
+                            <label class="checkbox-label"><input type="checkbox" value="process_transparency"><span class="checkmark"></span> Process transparency</label>
+                            <label class="checkbox-label"><input type="checkbox" value="boundaries_family"><span class="checkmark"></span> Boundaries/Family</label>
+                            <label class="checkbox-label"><input type="checkbox" value="remote_flex_policy"><span class="checkmark"></span> Remote/Flex policy</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="intake-notes" rows="3" placeholder="Quick context (optional)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn--outline" id="intake-maybe-later">Maybe later</button>
+                    <button class="btn btn--primary" id="intake-save">Save</button>
                 </div>
             </div>
         </div>

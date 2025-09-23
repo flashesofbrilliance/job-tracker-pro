@@ -88,7 +88,8 @@ const initialJobsData = [
         (typeof filters.salary==='number' && filters.salary>150),
         (filters.search && String(filters.search).trim().length>0),
         (!!filters.backlogOnly),
-        (filters.archetype && String(filters.archetype).length>0)
+        (filters.archetype && String(filters.archetype).length>0),
+        (!!filters.intakeOnly)
       ].filter(Boolean).length;
       countEl.textContent = String(active);
       countEl.classList.toggle('hidden', active === 0);
@@ -127,6 +128,8 @@ const initialJobsData = [
       if (backlog) backlog.checked = !!filters.backlogOnly;
       const archSel = qs('archetype-filter');
       if (archSel && typeof filters.archetype==='string') archSel.value = filters.archetype;
+      const intake = qs('intake-only');
+      if (intake) intake.checked = !!filters.intakeOnly;
     } catch(e) { /* no-op */ }
   }
 
@@ -361,6 +364,7 @@ const initialJobsData = [
       };
       jobsData.unshift(job);
       try { pushVibeSnapshot(job, 'imported'); } catch {}
+      try { openIntakeFor(job.id); } catch {}
       existing.add(job.id);
       added++;
     }
@@ -720,6 +724,7 @@ function bindEventListeners() {
   setupModalHandlers();
   setupActivityModal();
   setupResetModal();
+  setupIntakeModal();
 }
 
 function setupModalHandlers() {
@@ -901,6 +906,7 @@ function renderDiscoverView() {
   const insights = analyzeLearningSignals(jobsData);
   const insightsEl = document.getElementById('discover-insights');
   if (insightsEl) {
+    const intake = computeIntakeInsights(jobsData);
     insightsEl.innerHTML = `
       <div class="segment-stats">
         ${insights.topSegments.map(s => `
@@ -919,6 +925,28 @@ function renderDiscoverView() {
               <span class="segment-score">${r.count}</span>
             </div>
           `).join('') || '<div class="empty">No rejections logged yet.</div>'}
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <h4 style="margin:0 0 8px 0;">Top Anti‑Patterns (Intake)</h4>
+        <div class="segment-stats">
+          ${intake.flags.map(r => `
+            <div class="segment-stat">
+              <span class="segment-name">${r.name}</span>
+              <span class="segment-score">${r.count}</span>
+            </div>
+          `).join('') || '<div class="empty">No intake yet.</div>'}
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <h4 style="margin:0 0 8px 0;">Must‑Have Gaps (Intake)</h4>
+        <div class="segment-stats">
+          ${intake.musts.map(r => `
+            <div class="segment-stat">
+              <span class="segment-name">${r.name}</span>
+              <span class="segment-score">${r.count}</span>
+            </div>
+          `).join('') || '<div class="empty">No intake yet.</div>'}
         </div>
       </div>
     `;
@@ -1029,6 +1057,21 @@ function analyzeLearningSignals(jobs) {
     .slice(0, 6);
 
   return { topSegments, rejectionReasons };
+}
+
+function computeIntakeInsights(jobs) {
+  const flagCounts = {};
+  const mustCounts = {};
+  for (const j of jobs) {
+    (j.activityLog || []).forEach(a => {
+      if (a.type === 'Intake') {
+        (a.flags || []).forEach(f => { if (f) flagCounts[f] = (flagCounts[f]||0) + 1; });
+        (a.mustHaves || []).forEach(m => { if (m) mustCounts[m] = (mustCounts[m]||0) + 1; });
+      }
+    });
+  }
+  const toArr = obj => Object.entries(obj).map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count).slice(0,6);
+  return { flags: toArr(flagCounts), musts: toArr(mustCounts) };
 }
 
 function categorizeRejectionReason(text) {
@@ -1148,6 +1191,7 @@ function addDiscoveredRole(idx) {
   jobsData.unshift(newJob);
   // Initial vibe snapshot
   try { pushVibeSnapshot(newJob, 'added from recommendations'); } catch {}
+  try { openIntakeFor(newJob.id); } catch {}
   saveDataToStorage();
   applyAllFilters();
   renderDashboard();
@@ -1244,6 +1288,7 @@ function createTableRow(job) {
     <td>
       <span class="status-badge ${job.status}">${formatStatus(job.status)}</span>
       ${job.archiveTag ? `<span class="status-badge muted" title="${job.archiveReason||job.archiveTag}">${job.archiveTag}</span>` : ''}
+      ${job.intakePending ? `<span class="status-badge muted" title="Needs quick grade">Intake-Pending</span>` : ''}
     </td>
     <td class="fit-score">
       <span class="fit-score-value ${getFitScoreClass(job.fitScore)}">${job.fitScore}</span>
@@ -1273,6 +1318,16 @@ function createTableRow(job) {
   
   // Quick archive/backlog for not-started with "why not" feedback
   if (job.status === 'not-started') {
+    if (job.intakePending) {
+      const gradeBtn = document.createElement('button');
+      gradeBtn.className = 'action-btn';
+      gradeBtn.title = 'Quick Grade';
+      gradeBtn.innerHTML = '<i class="fas fa-clipboard-check"></i>';
+      gradeBtn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation(); openIntakeFor(job.id);
+      });
+      actionsCell.appendChild(gradeBtn);
+    }
     const archiveBtn = document.createElement('button');
     archiveBtn.className = 'action-btn';
     archiveBtn.title = 'Archive (capture why-not feedback)';
@@ -1855,6 +1910,8 @@ function applyFilters() {
   // Archetype
   const archSel = document.getElementById('archetype-filter');
   if (archSel) currentFilters.archetype = archSel.value || '';
+  const intakeOnly = document.getElementById('intake-only');
+  if (intakeOnly) currentFilters.intakeOnly = !!intakeOnly.checked;
   
   applyAllFilters();
   updateFilterIndicator();
@@ -1899,6 +1956,10 @@ function applyAllFilters() {
     if (currentFilters.archetype) {
       const id = job.trust && job.trust.archetype && job.trust.archetype.id;
       if (id !== currentFilters.archetype) return false;
+    }
+    // Intake pending filter
+    if (currentFilters.intakeOnly) {
+      if (!job.intakePending) return false;
     }
     
     return true;
