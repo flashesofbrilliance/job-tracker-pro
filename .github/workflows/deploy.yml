@@ -95,6 +95,7 @@ jobs:
           MODE: ${{ steps.mode.outputs.mode }}
           NAME: ${{ steps.mode.outputs.name }}
           DEST: ${{ steps.mode.outputs.dest }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           mkdir -p repo
@@ -102,7 +103,8 @@ jobs:
           git init
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git remote add origin "${{ github.server_url }}/${{ github.repository }}.git"
+          # Use token-authenticated remote for pushing to gh-pages
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git fetch origin gh-pages:gh-pages || true
           if git rev-parse --verify gh-pages >/dev/null 2>&1; then
             git checkout gh-pages
@@ -156,4 +158,3 @@ jobs:
             const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/env/preview/pr-${pr}/`;
             const body = `🚀 Preview deployed: ${url}`;
             github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr, body });
-
