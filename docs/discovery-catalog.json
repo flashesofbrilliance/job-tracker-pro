@@ -1,0 +1,22 @@
+{
+  "catalog": [
+    { "company": "Ledger", "sector": "Infrastructure", "role": "Director Product - Enterprise Wallets", "tags": ["Crypto","Security"], "baseFitAdj": 0.2, "applyUrl": "https://www.ledger.com/careers" },
+    { "company": "Fireblocks", "sector": "Infrastructure", "role": "VP Product - Institutional", "tags": ["Crypto","Institutional"], "baseFitAdj": 0.3, "applyUrl": "https://www.fireblocks.com/careers/" },
+    { "company": "MoonPay", "sector": "Payments", "role": "Head of Product - On/Off Ramp", "tags": ["FinTech","Payments"], "baseFitAdj": 0.1, "applyUrl": "https://www.moonpay.com/careers" },
+    { "company": "Plaid", "sector": "FinTech", "role": "Director Product - Identity & Risk", "tags": ["Risk","Compliance"], "baseFitAdj": 0.1, "applyUrl": "https://plaid.com/careers/" },
+    { "company": "Ripple", "sector": "Crypto", "role": "Director Product - Liquidity Hub", "tags": ["Crypto","Enterprise"], "baseFitAdj": 0.1, "applyUrl": "https://ripple.com/company/careers/" },
+    { "company": "Worldcoin", "sector": "AI", "role": "Director Product - Trust & Safety", "tags": ["AI","Identity"], "baseFitAdj": 0.0 },
+    { "company": "Chime", "sector": "FinTech", "role": "VP Product - Platform", "tags": ["Banking","Platform"], "baseFitAdj": -0.1 },
+    { "company": "Wise", "sector": "Payments", "role": "Head of Product - Enterprise", "tags": ["FX","Compliance"], "baseFitAdj": 0.0, "applyUrl": "https://www.wise.jobs/" },
+    { "company": "Airtm", "sector": "FinTech", "role": "Director Product - Cross-Border", "tags": ["Payments"], "baseFitAdj": 0.0 },
+    { "company": "OpenAI", "sector": "AI", "role": "Head of Product - Safety Systems", "tags": ["AI","Safety"], "baseFitAdj": 0.2, "applyUrl": "https://openai.com/careers" },
+    { "company": "Anthropic", "sector": "AI", "role": "Director Product - Enterprise", "tags": ["AI","Platform"], "baseFitAdj": 0.1, "applyUrl": "https://www.anthropic.com/careers" },
+    { "company": "Ramp", "sector": "FinTech", "role": "Director Product - Risk", "tags": ["FinTech","Risk"], "baseFitAdj": 0.0 },
+    { "company": "Checkout.com", "sector": "Payments", "role": "Director Product - Crypto", "tags": ["Payments","Crypto"], "baseFitAdj": 0.1, "applyUrl": "https://www.checkout.com/careers" },
+    { "company": "StarkWare", "sector": "L1", "role": "Head of Product - Developer Experience", "tags": ["L1","DevTools"], "baseFitAdj": 0.0 },
+    { "company": "EigenLayer", "sector": "Infrastructure", "role": "Director Product - Protocol", "tags": ["Crypto","Protocol"], "baseFitAdj": 0.0 },
+    { "company": "Kraken", "sector": "Exchange", "role": "Director Product - Institutional", "tags": ["Exchange","Institutional"], "baseFitAdj": 0.1, "applyUrl": "https://www.kraken.com/careers" },
+    { "company": "Firefly", "sector": "AI", "role": "Director Product - Safety", "tags": ["AI","Safety"], "baseFitAdj": 0.0 }
+  ]
+}
+

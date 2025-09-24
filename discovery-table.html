@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discovery – Table View</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .table-wrap { padding: 16px; }
+    table.discovery { width: 100%; border-collapse: collapse; }
+    table.discovery th, table.discovery td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: left; }
+    table.discovery th { background: #fafafa; font-weight: 600; }
+    .badge { display:inline-block; padding:2px 6px; border-radius: 10px; font-size: 12px; background:#eef; color:#334; }
+    /* Align fit class names to existing app styles */
+    .excellent { color: #0a7; font-weight: 600; }
+    .good { color: #2a7; font-weight: 600; }
+    .fair { color: #a70; }
+    .poor { color: #a33; }
+    .actions button { margin-right: 6px; }
+    .reason-pop { position: fixed; inset: 0; display:none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); }
+    .reason-card { background: #fff; border-radius: 8px; padding: 16px; width: min(520px, 92vw); box-shadow: 0 10px 28px rgba(0,0,0,0.2); }
+    .reason-card h3 { margin: 0 0 8px; }
+    .reason-card .row { display:flex; gap:12px; align-items:center; margin: 10px 0; }
+    .reason-card select, .reason-card input { flex:1; padding: 8px; }
+    .reason-card .footer { display:flex; justify-content:flex-end; gap:10px; margin-top: 10px; }
+  </style>
+  <script defer src="discovery-core.js"></script>
+  <script defer src="discovery-table.js"></script>
+  <script>
+    // Lightweight toast for this page
+    function showToast(msg, type='info') {
+      const el = document.createElement('div');
+      el.style.position = 'fixed'; el.style.right = '16px'; el.style.bottom = '16px';
+      el.style.background = type==='error'?'#fbe9e7':type==='success'?'#e8f5e9':'#e3f2fd';
+      el.style.color = '#222'; el.style.padding = '10px 12px'; el.style.borderRadius = '6px'; el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+      el.textContent = msg; document.body.appendChild(el); setTimeout(()=>el.remove(), 2600);
+    }
+  </script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="app-title"><i class="fas fa-table"></i> Discovery – Table View</h1>
+        </div>
+        <div class="header-actions">
+          <a class="btn btn--sm" href="discovery.html"><i class="fas fa-rotate"></i> Conveyor View</a>
+          <a class="btn btn--secondary btn--sm" href="index.html"><i class="fas fa-home"></i> Back to App</a>
+        </div>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="table-wrap">
+        <table class="discovery">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Sector</th>
+              <th>Fit</th>
+              <th class="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="disco-tbody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Quick feedback dialog -->
+  <div class="reason-pop" id="reason-pop">
+    <div class="reason-card" role="dialog" aria-modal="true" aria-labelledby="reason-title" tabindex="-1">
+      <h3 id="reason-title">Quick Feedback</h3>
+      <div class="row">
+        <label for="reason-select" style="min-width:110px">Reason</label>
+        <select id="reason-select"></select>
+      </div>
+      <div class="row">
+        <label for="reason-notes" style="min-width:110px">Notes</label>
+        <input id="reason-notes" placeholder="Optional details" />
+      </div>
+      <div class="footer">
+        <button class="btn btn--outline btn--sm" id="reason-skip">Skip</button>
+        <button class="btn btn--sm" id="reason-save">Save</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

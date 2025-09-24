@@ -16,3 +16,6 @@ logs/
 dist-discovery/
 coverage/
 .cache/
+
+# Ignore embedded repo directory
+repo/

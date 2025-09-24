@@ -266,6 +266,7 @@ const initialJobsData = [
     validateHeaders(headers);
     const idx = (name) => headers.indexOf(name.toLowerCase());
     const iCompany=idx('company'), iRole=idx('roletitle'), iStatus=idx('status'), iLoc=idx('location'), iSalary=idx('salary'), iFit=idx('fitscore'), iTags=idx('tags');
+    const iVibe=idx('vibe'), iReason=idx('reason');
     let added=0, skipped=0;
     rows.forEach(cols => {
       const company = (cols[iCompany]||'').trim();
@@ -275,13 +276,23 @@ const initialJobsData = [
       if (Array.isArray(jobsData) && !jobsData.find(j=>j.id===id)){
         const fitScore = Math.max(0, Math.min(10, parseFloat(cols[iFit]||'') || 0));
         const tags = (cols[iTags]||'').split(/\s*[,;]\s*/).filter(Boolean);
+        let vibe = (cols[iVibe]||'').trim();
+        const vibeNorm = {
+          'positive':'😊','pos':'😊','good':'😊','great':'😊','smile':'😊','🙂':'😊','😊':'😊',
+          'neutral':'😐','meh':'😐','ok':'😐','😐':'😐',
+          'negative':'😞','neg':'😞','bad':'😞','frown':'😞','😞':'😞'
+        };
+        if (vibe && !['😊','😐','😞'].includes(vibe)) {
+          const k = vibe.toLowerCase();
+          vibe = vibeNorm[k] || '😐';
+        }
         const job = {
           id,
           company,
           roleTitle,
           location: (cols[iLoc]||'').trim() || 'Remote',
           status: normalizeStatus(cols[iStatus]||'not-started'),
-          vibe: '😐',
+          vibe: vibe || '😐',
           fitScore,
           salary: (cols[iSalary]||'').trim() || '$-',
           tags,
@@ -295,6 +306,11 @@ const initialJobsData = [
           dateAdded: new Date().toISOString().slice(0,10)
         };
         jobsData.unshift(job);
+        // If imported as rejected and a reason provided, capture it
+        const reason = iReason >= 0 ? (cols[iReason]||'').trim() : '';
+        if (job.status === 'rejected' && reason) {
+          try { addRejectionActivity(job, reason, 'Imported from CSV'); } catch {}
+        }
         added++;
       } else {
         skipped++;
@@ -519,7 +535,23 @@ let sortConfig = { key: null, direction: 'asc' };
 let charts = {};
 let draggedElement = null;
 let currentEditingJob = null;
-let discoveryState = { recommendations: [], lastSeed: 0 };
+let discoveryState = { recommendations: [], lastSeed: 0, selectedIdx: -1, sort: 'fit-desc', sector: '' };
+
+// Settings
+function getAppSettings() {
+  try {
+    const raw = localStorage.getItem('appSettings');
+    const parsed = raw ? JSON.parse(raw) : {};
+    return {
+      requireReasonOnReject: false,
+      quickRejectToast: true,
+      ...parsed
+    };
+  } catch { return { requireReasonOnReject: false, quickRejectToast: true }; }
+}
+function saveAppSettings(s) {
+  try { localStorage.setItem('appSettings', JSON.stringify(s)); } catch {}
+}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -703,6 +735,37 @@ function bindEventListeners() {
       e.preventDefault();
       showResetModal();
     });
+  }
+
+  // Settings modal
+  const openSettings = document.getElementById('open-settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  if (openSettings && settingsModal) {
+    openSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      const s = getAppSettings();
+      const req = document.getElementById('setting-require-reason');
+      const quick = document.getElementById('setting-quick-reject-toast');
+      if (req) req.checked = !!s.requireReasonOnReject;
+      if (quick) quick.checked = !!s.quickRejectToast;
+      settingsModal.classList.remove('hidden');
+    });
+    const saveBtn = document.getElementById('settings-save');
+    const cancelBtn = document.getElementById('settings-cancel');
+    const closeBtn = document.getElementById('settings-close');
+    const doClose = () => settingsModal.classList.add('hidden');
+    if (saveBtn) saveBtn.addEventListener('click', () => {
+      const req = document.getElementById('setting-require-reason');
+      const quick = document.getElementById('setting-quick-reject-toast');
+      saveAppSettings({
+        requireReasonOnReject: !!(req && req.checked),
+        quickRejectToast: !!(quick && quick.checked)
+      });
+      doClose();
+      showToast('Settings saved', 'success');
+    });
+    if (cancelBtn) cancelBtn.addEventListener('click', doClose);
+    if (closeBtn) closeBtn.addEventListener('click', doClose);
   }
   
   // Modal close handlers
@@ -902,6 +965,7 @@ function renderCurrentView() {
 
 // Discover View
 function renderDiscoverView() {
+  try { loadDiscoveryCatalogOnce(); } catch {}
   // Build insights and recos each time (lightweight)
   const insights = analyzeLearningSignals(jobsData);
   const insightsEl = document.getElementById('discover-insights');
@@ -956,15 +1020,19 @@ function renderDiscoverView() {
   if (!discoveryState.recommendations.length) {
     discoveryState.recommendations = generateRecommendations(jobsData, insights);
   }
+  // Preselect first role so preview isn't empty
+  if (discoveryState.selectedIdx == null || discoveryState.selectedIdx < 0) {
+    if (discoveryState.recommendations.length > 0) discoveryState.selectedIdx = 0;
+  }
   const listEl = document.getElementById('discover-list');
   if (listEl) {
     if (discoveryState.recommendations.length === 0) {
       listEl.innerHTML = '<div class="empty" style="padding:12px;">No recommendations yet. Try refreshing.</div>';
     } else {
       const rows = discoveryState.recommendations.map((rec, idx) => `
-        <div class="table-row" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--border-color, #e5e7eb);padding:10px 6px;">
+        <div class="table-row" data-select-idx="${idx}" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--border-color, #e5e7eb);padding:10px 6px;cursor:pointer;${discoveryState.selectedIdx===idx?'background:rgba(0,0,0,0.04);':''}">
           <div><strong>${rec.company}</strong></div>
-          <div>${rec.roleTitle}</div>
+          <div>${rec.roleTitle} ${rec.applyUrl ? `<a href="${rec.applyUrl}" target="_blank" rel="noopener" title="Open posting" style="margin-left:6px;color:inherit;"><i class=\"fas fa-external-link-alt\"></i></a>` : ''}</div>
           <div><span class="fit-score-value ${getFitScoreClass(rec.expectedFit)}">${rec.expectedFit.toFixed(1)}</span></div>
           <div>${rec.sector}</div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -974,11 +1042,14 @@ function renderDiscoverView() {
         </div>
       `).join('');
       listEl.innerHTML = `
-        <div class="table" role="table">
-          <div role="row" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;font-weight:600;padding:8px 6px;opacity:0.8;">
-            <div>Company</div><div>Role</div><div>Expected Fit</div><div>Sector</div><div></div>
+        <div style="display:grid;grid-template-columns: 1.6fr 1fr; gap:12px;">
+          <div class="table" role="table">
+            <div role="row" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;font-weight:600;padding:8px 6px;opacity:0.8;">
+              <div>Company</div><div>Role</div><div>Expected Fit</div><div>Sector</div><div></div>
+            </div>
+            ${rows}
           </div>
-          ${rows}
+          <div id="discover-pane" style="min-height:340px;border:1px solid var(--color-border, #e5e7eb);border-radius:8px;padding:8px;overflow:auto;background:var(--color-surface, #fff);"></div>
         </div>
       `;
       // Bind vote buttons
@@ -994,6 +1065,15 @@ function renderDiscoverView() {
           voteRecommendation(idx, 'down');
         });
       });
+      // Select row to preview
+      listEl.querySelectorAll('[data-select-idx]').forEach(row => {
+        row.addEventListener('click', (e) => {
+          const idx = parseInt(e.currentTarget.getAttribute('data-select-idx'));
+          discoveryState.selectedIdx = idx;
+          renderDiscoverView();
+        });
+      });
+      renderDiscoverPane();
     }
   }
 
@@ -1002,7 +1082,7 @@ function renderDiscoverView() {
   if (refreshBtn) {
     refreshBtn.onclick = () => {
       discoveryState.lastSeed++;
-      discoveryState.recommendations = generateRecommendations(jobsData, insights, discoveryState.lastSeed);
+      recomputeDiscoverList(insights);
       renderDiscoverView();
     };
   }
@@ -1013,9 +1093,21 @@ function renderDiscoverView() {
       try { localStorage.removeItem('discoveryFeedback'); } catch {}
       showToast('Cleared thumbs feedback', 'info');
       discoveryState.lastSeed++;
-      discoveryState.recommendations = generateRecommendations(jobsData, insights, discoveryState.lastSeed);
+      recomputeDiscoverList(insights);
+      discoveryState.selectedIdx = -1;
       renderDiscoverView();
     };
+  }
+  // Sort/filter controls
+  const sectorFilter = document.getElementById('discover-sector-filter');
+  if (sectorFilter) {
+    sectorFilter.value = discoveryState.sector || '';
+    sectorFilter.onchange = () => { discoveryState.sector = sectorFilter.value || ''; recomputeDiscoverList(insights); renderDiscoverView(); };
+  }
+  const sortSel = document.getElementById('discover-sort');
+  if (sortSel) {
+    sortSel.value = discoveryState.sort || 'fit-desc';
+    sortSel.onchange = () => { discoveryState.sort = sortSel.value || 'fit-desc'; recomputeDiscoverList(insights); renderDiscoverView(); };
   }
 }
 
@@ -1114,7 +1206,7 @@ function generateRecommendations(jobs, insights, seed = 0) {
 
   // Score candidates by sector match + not in existing + slight randomness by seed
   const rand = (i) => ((Math.sin(i + seed * 1337) + 1) / 2); // deterministic but varied
-  const recos = catalog
+  const scored = catalog
     .filter(c => !existingKeys.has(`${c.company}::${c.role}`))
     .filter(c => !downKeys.has(`${c.company}::${c.role}`))
     .map((c, i) => {
@@ -1130,16 +1222,53 @@ function generateRecommendations(jobs, insights, seed = 0) {
         expectedFit,
         tags: [c.sector, ...(c.tags || [])].slice(0,5),
         salary: c.salary || '$200k - $300k + equity',
-        location: c.location || 'Remote (Global)'
+        location: c.location || 'Remote (Global)',
+        applyUrl: c.applyUrl || ''
       };
     })
     .sort((a,b) => b.expectedFit - a.expectedFit)
-    .slice(0, 12);
-  return recos;
+  // Diversify by sector/company with simple caps
+  const takenBySector = {};
+  const takenCompanies = new Set();
+  const out = [];
+  for (const r of scored) {
+    const s = r.sector || 'Other';
+    const sc = takenBySector[s] || 0;
+    if (takenCompanies.has(r.company)) continue;
+    if (sc >= 3) continue;
+    out.push(r);
+    takenCompanies.add(r.company);
+    takenBySector[s] = sc + 1;
+    if (out.length >= 12) break;
+  }
+  return out;
+}
+
+// Load catalog once from JSON if present; fallback to defaults
+let __catalogLoaded = false;
+let __extCatalog = null;
+async function loadDiscoveryCatalogOnce() {
+  if (__catalogLoaded) return;
+  __catalogLoaded = true;
+  try {
+    const res = await fetch('docs/discovery-catalog.json', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data && data.catalog)) {
+        __extCatalog = data.catalog;
+        // Refresh recommendations if in Discover view
+        try {
+          discoveryState.lastSeed++;
+          renderDiscoverView();
+        } catch {}
+      }
+    }
+  } catch {}
 }
 
 function getDiscoveryCatalog() {
-  // Lightweight, static catalog — extend as needed
+  if (Array.isArray(__extCatalog) && __extCatalog.length) return __extCatalog;
+  // Default catalog — safe baseline
   return [
     { company: 'Ledger', sector: 'Infrastructure', role: 'Director Product - Enterprise Wallets', tags: ['Crypto','Security'], baseFitAdj: 0.2 },
     { company: 'Fireblocks', sector: 'Infrastructure', role: 'VP Product - Institutional', tags: ['Crypto','Institutional'], baseFitAdj: 0.3 },
@@ -1208,7 +1337,11 @@ function voteRecommendation(idx, vote) {
     try { arr = JSON.parse(localStorage.getItem('discoveryFeedback')) || []; } catch {}
     // de-dup by key (keep latest)
     arr = arr.filter(x => x && x.key !== key);
-    arr.unshift({ key, vote, at: now, sector: rec.sector });
+    // Include optional reason from pane
+    let reason = '';
+    const reasonEl = document.getElementById('discover-reason');
+    if (reasonEl && vote === 'down') reason = reasonEl.value || '';
+    arr.unshift({ key, vote, at: now, sector: rec.sector, reason });
     localStorage.setItem('discoveryFeedback', JSON.stringify(arr.slice(0,200)));
     if (vote === 'down') {
       // remove from current list and refresh view
@@ -1216,6 +1349,7 @@ function voteRecommendation(idx, vote) {
       showToast('Noted. We\'ll show fewer like this.', 'info');
       // refresh with slight re-seed to reflect bias
       discoveryState.lastSeed++;
+      discoveryState.selectedIdx = -1;
       renderDiscoverView();
     } else {
       // thumbs up = add to board then remove from list
@@ -1223,11 +1357,62 @@ function voteRecommendation(idx, vote) {
       discoveryState.recommendations.splice(idx, 1);
       // re-seed to favor similar
       discoveryState.lastSeed++;
+      discoveryState.selectedIdx = -1;
       renderDiscoverView();
     }
   } catch (e) {
     console.warn('vote failed', e);
   }
+}
+
+// Helper to apply current sort/filter to discovery list
+function recomputeDiscoverList(insights) {
+  let recs = generateRecommendations(jobsData, insights, discoveryState.lastSeed);
+  if (discoveryState.sector) recs = recs.filter(r => r.sector === discoveryState.sector);
+  if (discoveryState.sort === 'company-asc') recs.sort((a,b)=>a.company.localeCompare(b.company));
+  else if (discoveryState.sort === 'sector-asc') recs.sort((a,b)=>a.sector.localeCompare(b.sector)||b.expectedFit-a.expectedFit);
+  else recs.sort((a,b)=>b.expectedFit-a.expectedFit);
+  discoveryState.recommendations = recs;
+}
+
+function renderDiscoverPane() {
+  const pane = document.getElementById('discover-pane');
+  if (!pane) return;
+  const idx = discoveryState.selectedIdx;
+  if (idx == null || idx < 0 || idx >= discoveryState.recommendations.length) {
+    pane.innerHTML = '<div style="padding:8px;color:var(--color-text-secondary,#666);">Select a recommendation to preview and vote.</div>';
+    return;
+  }
+  const rec = discoveryState.recommendations[idx];
+  const link = rec.applyUrl || rec.link || '';
+  const fallback = link ? '' : '<div style="padding:8px;font-size:12px;color:var(--color-text-secondary,#666);">Preview may be unavailable. Many sites block embedded views. Use the Open link below.</div>';
+  pane.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:12px;opacity:0.7;margin-bottom:2px;">Role Preview</div>
+          <div style="font-weight:600;">${rec.company}</div>
+          <div style="opacity:0.85;">${rec.roleTitle}</div>
+        </div>
+        <div>
+          ${link ? `<a class="btn btn--sm btn--outline" href="${link}" target="_blank" rel="noopener">Open</a>` : ''}
+        </div>
+      </div>
+      ${fallback}
+      <div style="border:1px solid var(--color-border,#e5e7eb);border-radius:6px;min-height:240px;background:#fff;overflow:hidden;">
+        ${link ? `<iframe src="${link}" style="width:100%;height:320px;border:0;" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>` : '<div style="padding:8px;">No preview link available.</div>'}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn--sm btn--outline" id="pane-down">👎</button>
+        <button class="btn btn--sm btn--primary" id="pane-up">👍</button>
+        <input type="text" id="discover-reason" class="form-control" placeholder="Why not? (optional)" style="flex:1;min-width:120px;">
+      </div>
+    </div>
+  `;
+  const up = document.getElementById('pane-up');
+  const down = document.getElementById('pane-down');
+  if (up) up.onclick = () => voteRecommendation(idx, 'up');
+  if (down) down.onclick = () => voteRecommendation(idx, 'down');
 }
 
 // Table View
@@ -1541,13 +1726,25 @@ function handleDrop(e, newStatus) {
       job.appliedDate = new Date().toISOString().split('T')[0];
     }
 
-    // Quick rejection reason capture
-    if (newStatus === 'rejected') {
-      const reason = promptRejectionReason();
-      if (reason) {
-        addRejectionActivity(job, reason, 'Captured on status change');
+  // Rejection: enforce optional reason + quick toast
+  if (newStatus === 'rejected') {
+    const settings = getAppSettings();
+    let reason = '';
+    // If required, prompt; if user cancels/empty, revert and bail
+    if (settings.requireReasonOnReject) {
+      reason = promptRejectionReason();
+      if (!reason) {
+        // revert and notify
+        job.status = oldStatus;
+        showToast('Reason is required to move to Rejected.', 'error');
+        return;
       }
+      addRejectionActivity(job, reason, 'Captured on status change');
+    } else {
+      // Optional: no blocking prompt; show quick dropdown toast nearby
+      showRejectReasonToast(job.id);
     }
+  }
     
     // Save to localStorage
     saveDataToStorage();
@@ -1577,6 +1774,50 @@ function promptRejectionReason() {
   const n = parseInt(input.trim(), 10);
   if (!isNaN(n) && n >= 1 && n <= options.length) return options[n - 1];
   return input.trim();
+}
+
+function showRejectReasonToast(jobId) {
+  try {
+    const job = jobsData.find(j => j.id === jobId);
+    if (!job) return;
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const host = document.createElement('div');
+    host.className = 'toast info';
+    host.style.maxWidth = '420px';
+    const options = ['Compensation','Seniority/Level','Location/Visa','Timing/Headcount','Domain Fit','Skills/Experience','Other'];
+    host.innerHTML = `
+      <i class="toast-icon fas fa-info-circle"></i>
+      <span class="toast-message" style="display:block;">
+        Rejection reason for <strong>${job.company}</strong>?
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+          <select id="quick-reject-select" class="form-control" style="flex:1;min-width:160px;">
+            <option value="">Select…</option>
+            ${options.map(o=>`<option>${o}</option>`).join('')}
+          </select>
+          <button class="btn btn--sm btn--primary" id="quick-reject-save">Save</button>
+          <button class="btn btn--sm btn--outline" id="quick-reject-skip">Skip</button>
+        </div>
+      </span>
+      <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    container.appendChild(host);
+    const save = host.querySelector('#quick-reject-save');
+    const skip = host.querySelector('#quick-reject-skip');
+    const sel = host.querySelector('#quick-reject-select');
+    if (save) save.addEventListener('click', () => {
+      const val = (sel && sel.value) || '';
+      if (val) {
+        addRejectionActivity(job, val, 'Quick dropdown');
+        saveDataToStorage();
+        renderKanbanView();
+        renderDashboard();
+        showToast('Rejection reason saved', 'success');
+      }
+      host.remove();
+    });
+    if (skip) skip.addEventListener('click', () => host.remove());
+  } catch {}
 }
 
 function addRejectionActivity(job, reason, notes = '') {
@@ -2353,6 +2594,7 @@ function renderAnalyticsView() {
   setTimeout(() => {
     initializeCharts();
     renderSegmentStats();
+    renderRejectionAnalytics();
   }, 100);
 }
 
@@ -2510,6 +2752,37 @@ function renderSegmentStats() {
       <span class="segment-score">${segment.avgScore}</span>
     </div>
   `).join('');
+}
+
+function renderRejectionAnalytics() {
+  const insights = analyzeLearningSignals(jobsData);
+  const reasonsEl = document.getElementById('rejection-reasons');
+  if (reasonsEl) {
+    reasonsEl.innerHTML = insights.rejectionReasons.map(r => `
+      <div class="segment-stat">
+        <span class="segment-name">${r.reason}</span>
+        <span class="segment-score">${r.count}</span>
+      </div>
+    `).join('') || '<div class="empty">No rejections yet.</div>';
+  }
+  const byCo = {};
+  for (const j of jobsData) {
+    (j.activityLog||[]).forEach(a => {
+      if ((a.type||'').toLowerCase()==='rejection') {
+        byCo[j.company] = (byCo[j.company]||0)+1;
+      }
+    });
+  }
+  const byCoArr = Object.entries(byCo).map(([company,count])=>({company,count})).sort((a,b)=>b.count-a.count).slice(0,10);
+  const byCoEl = document.getElementById('rejections-by-company');
+  if (byCoEl) {
+    byCoEl.innerHTML = byCoArr.map(r => `
+      <div class="segment-stat">
+        <span class="segment-name">${r.company}</span>
+        <span class="segment-score">${r.count}</span>
+      </div>
+    `).join('') || '<div class="empty">No rejections yet.</div>';
+  }
 }
 
 // Reset Pipeline Functions
